@@ -1,0 +1,182 @@
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="Lambda_OnLoad">
+    <ribbon>
+        <tabs>
+              <tab id="XLE" label="XL Edge">     
+                 <group id="XLEdgeGrp" label="Productivity Tools">
+                     <button id="P01Btn" label="Std Page Setup" size="normal" imageMso="FilePageSetupPage" onAction="StandardPageSetup" screentip="Std Page Setup (Portrait)" supertip="Scope is all selected worksheets." />   
+                     <button id="P02Btn" label="Switch Portrait" size="normal" imageMso="PageOrientationPortrait" onAction="Switch_Portrait" screentip="Switch Portrait" supertip="Scope is all selected worksheets." />   
+                     <button id="P03Btn" label="Switch Landscape" size="normal" imageMso="PageOrientationLandscape" onAction="Switch_Landscape" screentip="Switch Landscape" supertip="Scope is all selected worksheets." />   
+                     <button id="P04Btn" label="Clear Footers" size="normal" imageMso="CustomFooterGallery" onAction="ClearFooters" screentip="Clear Footers" supertip="Scope is all selected worksheets." />  
+                     <button id="P05Btn" label="Update Left Footer" imageMso="HeaderFooterPreviousSection" onAction="UpdateLeftFooter" screentip="Update Left Footer" supertip="Scope is all selected worksheets." /> 
+                     <button id="P06Btn" label="Update Right Footer" imageMso="HeaderFooterNextSection" onAction="UpdateRightFooter" screentip="Update Right Footer" supertip="Scope is all selected worksheets." />        
+                     <separator id="VSep01" />  
+                     <button id="CompanyBtn" label="Insert Company Name" size="large" imageMso="OrganizationChartSelectLevel" onAction="InsertCompanyName" screentip="Insert Company Name" supertip="Tool inserts Company name to current cell." />                                                                            
+                     <button id="NumFmtBtn" label="Toggle Number Formats" size="large" imageMso="FormattingUnique" onAction="ToggleNumberFormats" screentip="Toggle Number Formats" supertip="Scope is the current selection (Ctrl + Shift + 1)." />
+                     <button id="FormatPivotTableBtn" label="Format Pivot Table" size="large" imageMso="PivotTableNewStyle" onAction="FormatPTDataFields" screentip="Format Pivot Table" supertip="Tool to format all pivot tables in the current workbook." />
+                     <separator id="VSep02" />
+                     <button id="insertSymbolBtn" label="Insert Symbol from List" size="normal" imageMso="SymbolInsert" onAction="InsertSymbol" screentip="Insert Symbol from List" supertip="Tool inserts the selected symbol into the selected cells." />
+                     <button id="CenterAcrossSelBtn" label="Center Across Selection" size="normal" imageMso="MergeCenter" onAction="CenterAcrossSelectionCode" screentip="Center Across Selection" supertip="Tool to center cell contents across the selected columns." />     
+                     <button id="LUBSeltn" label="Light Underline to Range" size="normal" imageMso="TableInsertExcel" onAction="FormatLightUnderlinetoSelectedRange" screentip="Light Underline to Range" supertip="Scope is the current selection." />  
+                     <separator id="VSep03" />      
+                     <splitButton id="XLEdge2" size="large">
+                        <button id="XLEdge3" label="Format Tools" imageMso="FormatBar" />
+                        <menu id="XLEdge4">                                              
+                             <button id="XLEdge41Btn" label="Toggle Number Scale" imageMso="NumberStyleGalleryWord" onAction="ToggleNumberScale" screentip="Toggle Number Scale" supertip="Scope is the current selection (Ctrl + Shift + 2)." />
+                             <button id="XLEdge42Btn" label="Toggle Date Formats" imageMso="ArrangeByDate" onAction="ToggleDateFormats" screentip="Toggle Date Formats" supertip="Scope is the current selection." />
+                             <button id="XLEdge43Btn" label="Toggle Swap Font" imageMso="FontsReplaceFonts" onAction="ToggleFontsMaster" screentip="Toggle Swap Font" supertip="Scope is the current selection." />
+                             <button id="XLEdge44Btn" label="Financial Formatting" imageMso="FPAggregateDataSource" onAction="FinancialFontColorCoding" screentip="Financial Formatting" supertip="Scope is the current worksheet." />
+                             <button id="XLEdge45Btn" label="Financial Formatting ALT" imageMso="FontColorCycle" onAction="FinancialFontColorCoding2" screentip="Financial Formatting ALT" supertip="Scope is the current worksheet." />
+                             <button id="XLEdge46Btn" label="Blue and Black Formatting" imageMso="BarStylesFormat" onAction="AutoBlueBlackSelection" screentip="Blue and Black Formatting" supertip="Scope is the current selection." />
+                             <button id="XLEdge47Btn" label="Auto Color Selection" imageMso="FormatBarStylesMenu" onAction="AutoColorSelection" screentip="Auto Color Selection" supertip="Scope is the current selection." /> 
+                             <menuSeparator id="Sep01" />
+                             <button id="XLEdge51Btn" label="Toggle Font Size" imageMso="FontSizeIncrease" onAction="ToggleFontSize" screentip="Toggle Font Size" supertip="Scope is the current selection (Ctrl + Shift + 3)." />
+                             <button id="XLEdge52Btn" label="Toggle Fonts Selection" imageMso="FontDialog" onAction="ToggleFonts" screentip="Toggle Fonts Selection" supertip="Scope is the current selection  (Ctrl + Shift + 4)." />
+                             <button id="XLEdge54Btn" label="Toggle FontColors" imageMso="FontColorCycle" onAction="ToggleFontColors" screentip="Toggle FontColors" supertip="Scope is the current selection  (Ctrl + Shift + 6)." />
+                             <button id="XLEdge55Btn" label="Toggle FillColors" imageMso="CellFillColorPicker" onAction="ToggleFillColors" screentip="Toggle FillColors" supertip="Scope is the current selection  (Ctrl + Shift + 7)." />
+                             <button id="XLEdge56Btn" label="Toggle Indents" imageMso="IndentIncreaseExcel" onAction="ToggleIndents" screentip="Toggle Indents" supertip="Scope is the current selection  (Ctrl + Shift + 8)." />
+                             <menuSeparator id="Sep02" />
+                             <button id="XLEdge61Btn" label="Remove Empty Rows and Cols" imageMso="TableDeleteRowsAndColumnsMenu" onAction="ClearExcessRowsAndColumns" screentip="Remove Empty Rows and Cols" supertip="Deletes every completely blank row and column inside the current selection. Whole sheet rows and columns are removed, so you are asked to confirm first." />
+                             <button id="XLEdge62Btn" label="Remove Empty Rows" imageMso="TableDeleteRows" onAction="RemoveEmptyRows" screentip="Remove Empty Rows" supertip="Deletes every completely blank row inside the current selection. Whole sheet rows are removed, so you are asked to confirm first." />
+                             <button id="XLEdge63Btn" label="Remove Border Formatting" imageMso="BorderErase" onAction="RemoveBorders" screentip="Remove Border Formatting" supertip="Tool to remove borders from the current selection." />
+                             <button id="XLEdge64Btn" label="Delete Custom Styles from File" imageMso="InkDeleteAllInk" onAction="DeleteCustomStyles_Workbook" screentip="Delete Custom Styles from File" supertip="Tool deletes custom styles in the current Excel workbook." />   
+                             <button id="XLEdge65Btn" label="Format Selected Column" imageMso="ColumnActionsColumnSettings" onAction="FormatSelectedColumns" screentip="Format Selected Column" supertip="Scope is the current column." />  
+                             <button id="XLEdge66Btn" label="Remove Special Formatting" imageMso="PasteSourceFormatting" onAction="RemoveSpecialFormatting" screentip="Remove Special Formatting" supertip="Scope is the current selection." />  
+                             <menuSeparator id="Sep03" />
+                             <button id="XLEdge72Btn" label="Set Row Heights for Selection" imageMso="RowHeight" onAction="SetRowHeights" screentip="Set Row Heights for Selection" supertip="Scope is the current selection." />                                                            
+                             <button id="XLEdge73Btn" label="Set Column Widths for Selection" imageMso="ColumnWidth" onAction="SetColumnWidths" screentip="Set Column Widths for Selection" supertip="Scope is the current selection." /> 
+                             <button id="XLEdge74Btn" label="Set Row Heights for Worksheet" imageMso="SlicerRowHeight" onAction="SetRowHeightsWorksheet" screentip="Set Row Heights for Worksheet" supertip="Scope is the current worksheet." />   
+                             <button id="XLEdge75Btn" label="Set Column Widths for Worksheet" imageMso="SlicerColumnWidth" onAction="SetColumnWidthsWorksheet" screentip="Set Column Widths for Worksheet" supertip="Scope is the current worksheet." />                                                   
+                             <button id="XLEdge76Btn" label="Column Width Paste" imageMso="FormatColumns" onAction="ColumnWidthsPaste" screentip="Column Width Paste" supertip="Tool uses widths of the current selected columns and pastes them to identified columns." />
+                         </menu>
+                    </splitButton>
+                    <splitButton id="Prod1" size="large">
+                        <button id="Prod2" label="Formula Tools" imageMso="FormulaEvaluate" />
+                        <menu id="Prod3">  
+                             <button id="P11Btn" label="Fill formulas to Right" imageMso="FillRight" onAction="FillRight" screentip="Fill to Right" supertip="Copies the selected formulas to the right into empty columns only, following the formulas in the row directly above or below. Stops at the first column that is occupied or has no formula to follow." />
+                             <button id="P12Btn" label="Fill formula Down" imageMso="FillDown" onAction="FillDown" screentip="Fill Down" supertip="Fills the selected formulas down into blank rows only. Stops entirely at the first row that already holds anything, so nothing is overwritten." />  
+                             <menuSeparator id="Sep31" />     
+                             <button id="P21Btn" label="List Formula To Left - Cell" imageMso="PivotChartFormulasMenu" onAction="ListFormulaToLeft" screentip="List Formula To Left" supertip="Tool lists the text of formula immediately to the left into the active cell." /> 
+                             <button id="P221Btn" label="List Formula To Left - Range" imageMso="PivotChartFormulasMenu" onAction="ListFormulaToLeftSelection" screentip="List Formula To Left" supertip="Tool lists the text of formula immediately to the left into each cell in the active range." /> 
+                             <menuSeparator id="Sep32" />  
+                             <button id="P31Btn" label="Wrap with Round" imageMso="NumberFormatGallery" onAction="Wrap_with_Round" screentip="Wrap with Round" supertip="Scope is the selected range." />
+                             <button id="P32Btn" label="Wrap with IFError" imageMso="ErrorChecking" onAction="Wrap_with_Error" screentip="Wrap with IFError" supertip="Scope is the selected range." />
+                             <button id="P33Btn" label="Wrap with Parenthesis ()" imageMso="ParenthesisLeft" onAction="Wrap_Parenthesis" screentip="Wrap with Parenthesis ()" supertip="Scope is the selected range." />
+                             <button id="P34Btn" label="Wrap with Flip Sign" imageMso="ReviewHighlightChanges" onAction="Wrap_Flip_Sign" screentip="Wrap with Flip Sign" supertip="Scope is the selected range." />
+                             <button id="P35Btn" label="Change Sign of Inputs" imageMso="ReviewInkCommentNew" onAction="ChangeSignforInputCells" screentip="Change Sign of Inputs" supertip="Scope is the selected range." />
+                             <button id="P36Btn" label="Remove Negative Signs" imageMso="ReviewHighlightChanges" onAction="RemoveNegativeSigns" screentip="Remove Negative Signs" supertip="Scope is the selected range." />
+                             <button id="P37Btn" label="Change SUM to SUBTOTAL" imageMso="AutoSum" onAction="ChangeSumToSubTotal" screentip="Change SUM to SUBTOTAL" supertip="Scope is the selected range." />
+                             <menuSeparator id="Sep33" />                           
+                             <button id="P41Btn" label="Formulas to Absolute Refs" imageMso="PivotTableFormulasMenu" onAction="Change_Formula_Absolute" screentip="Formulas to Absolute Refs" supertip="Tool adds full absolute references (similar to F4) to the selected range." />                             
+                             <button id="P42Btn" label="Formulas to Relative Refs" imageMso="PivotTableEnableWhatIfAnalysis" onAction="Change_Formula_Relative" screentip="Formulas to Relative Refs" supertip="Tool removes any locked references (similar to F4) to the selected range." />
+                             <button id="P43Btn" label="Remove Same Sheet Refs" imageMso="EditLinks" onAction="RemoveSameSheetReferences" screentip="Remove Same Sheet Refs" supertip="Scope is the active worksheet." />                    
+                             <button id="P440Btn" label="Exact Copy" imageMso="Copy" onAction="ExactFormulaCopy" screentip="Exact Copy" supertip="Tool copies selected range to new range without changing any cell references." />                       
+                             <menuSeparator id="Sep34" />                                      
+                             <button id="P51Btn" label="Replace Blanks with Zeros" imageMso="TableOfFiguresInsert" onAction="replaceBlankWithZero" screentip="Replace Blanks with Zeros" supertip="Scope is the selected range." />
+                             <button id="P52Btn" label="Fill Blanks with Value" imageMso="TableExcelSpreadsheetInsert" onAction="FillBlankCellsWithValue" screentip="Fill Blanks with Value" supertip="Scope is the selected range." />
+                             <button id="P53Btn" label="Trim Spaces" imageMso="ShapesObjectTrim" onAction="RemoveSpaces" screentip="Trim Spaces" supertip="Scope is the selected range." />
+                             <button id="P54Btn" label="Remove Char(s)" imageMso="WatermarkRemove" onAction="removeChar" screentip="Remove Char(s)" supertip="Scope is the selected range." />  
+                             <menuSeparator id="Sep35" /> 
+                             <button id="P61Btn" label="Add Prefix" imageMso="AddCellLeft" onAction="AddPrefix" screentip="Add Prefix" supertip="Scope is the selected range." />
+                             <button id="P62Btn" label="Add Suffix" imageMso="AddCellRight" onAction="AddSuffix" screentip="Add Suffix" supertip="Scope is the selected range." />     
+                             <button id="P63Btn" label="Remove Prefix" imageMso="DeleteCells" onAction="RemovePrefix" screentip="Remove Prefix" supertip="Scope is the selected range." />
+                             <button id="P64Btn" label="Remove Suffix" imageMso="DeleteRows" onAction="RemoveSuffix" screentip="Remove Suffix" supertip="Scope is the selected range." />                        
+                             <menuSeparator id="Sep36" /> 
+                             <button id="P71Btn" label="Multiply Range by 1000" imageMso="PivotChartFormulasMenu" onAction="MultiplyBy1000" screentip="Multiply Range by 1000" supertip="Scope is the selected range." />
+                             <button id="P72Btn" label="Divide Range by 1000" imageMso="PivotChartFormulasMenu" onAction="DivideBy1000" screentip="Divide Range by 1000" supertip="Scope is the selected range." />
+                             <button id="P73Btn" label="Multiply Range by Selected Value" imageMso="PivotChartFormulasMenu" onAction="MultiplyByUserInput" screentip="Multiply Range by Selected Value" supertip="Scope is the selected range." />
+                             <button id="P74Btn" label="Divide Range by Selected Value" imageMso="PivotChartFormulasMenu" onAction="DivideByUserInput" screentip="Divide Range by Selected Value" supertip="Scope is the selected range." />  
+                             <menuSeparator id="Sep37" />
+                             <button id="P81Btn" label="Fill Range with Random Uniform Values" imageMso="ChartPlotArea" onAction="FillSelectionWithUniformRandom" screentip="Fill Range with Random Uniform Values (Between 1 to 100)" supertip="Scope is the selected range." />
+                             <button id="P82Btn" label="Fill Range with Random Normal Values" imageMso="ChartPlotArea" onAction="FillSelectionWithNormalRandom" screentip="Fill Range with Random Normal Values (Between 1 to 100)" supertip="Scope is the selected range." />      
+                             <menuSeparator id="Sep38" /> 
+                             <button id="P91Btn" label="Toggle Case" imageMso="ChangeCaseGallery" onAction="ToggleCase" screentip="Toggle Case" supertip="Change text case of the selected range." />
+                             <button id="P92Btn" label="Proper Case" imageMso="TextNormalCase" onAction="ConvertProperCase" screentip="Proper Case" supertip="Change text case of the selected range." />
+                             <button id="P93Btn" label="Sentence Case" imageMso="TextStyles" onAction="ConvertSentenceCase" screentip="Sentence Case" supertip="Change text case of the selected range." />
+                             <button id="P94Btn" label="Upper Case" imageMso="TextAllCaps" onAction="ConvertUpperCase" screentip="Upper Case" supertip="Change text case of the selected range." />
+                             <button id="P95Btn" label="Lower Case" imageMso="TextNormalCase" onAction="ConvertLowerCase" screentip="Lower Case" supertip="Change text case of the selected range." />     
+                           </menu>
+                    </splitButton>           
+                     <splitButton id="XLEdge5" size="large">
+                        <button id="MXLEdge6" label="Tools" imageMso="VisualBasic" />
+                        <menu id="XLEdge7">       
+                             <button id="T13Btn" label="Speak Cell Contents" imageMso="SpeakCells" onAction="SpeakCellContents" screentip="Speak Cell Contents" supertip="Have Excel speak the contents of selected range." /> 
+                             <button id="T21Btn" label="Expand and Collapse Formula Bar" imageMso="MenuExpandCollapse" onAction="ToggleFormulaBar" screentip="Expand and Collapse Formula Bar" supertip="Tool to expand and collapse the formula bar (Ctrl + Shift + U)." /> 
+                             <button id="T22Btn" label="Toggle Grid" imageMso="TableShowGridlines" onAction="ToggleGrid" screentip="Toggle Grid" supertip="Tool to turn Excel's gridlines on and off." />                               
+                             <button id="T23Btn" label="Unmerge and Center Across" imageMso="MergeCenter" onAction="UnmergedCellsToCenterAcross" screentip="Unmerge and Center Across" supertip="Scope is the current worksheet." />
+                             <button id="T24Btn" label="Unmerge Selected Sheets" imageMso="UnmergeCells" onAction="UnmergeSelectedSheets" screentip="Unmerge Selected Sheets" supertip="Scope is selected worksheets." />
+                             <button id="T25Btn" label="Unmerge All Sheets" imageMso="MergeCellsAcross" onAction="UnmergeAllSheets" screentip="Unmerge All Sheets" supertip="Scope is all worksheets." /> 
+                             <menuSeparator id="Sep53" />
+                             <button id="T31Btn" label="Copy Selected Worksheets to New File without Formulas" imageMso="NewFolder" onAction="CopySelectedWorksheetsToNewWorkbook" screentip="Copy Worksheet to New File" supertip="Tool to copy all selected worksheets to a new file without formulas." /> 
+                             <button id="T32Btn" label="Remove Formulas from Selection" imageMso="FormulaEvaluate" onAction="RemoveFormulasfromSelection" screentip="Remove Formulas from Selection" supertip="Replaces every formula in the selection with its current value. Asks for confirmation first." />
+                             <button id="T33Btn" label="Remove Formulas from Worksheet" imageMso="Formula" onAction="RemoveFormulasfromWorksheet" screentip="Remove Formulas from Worksheet" supertip="Replaces every formula on the active worksheet with its current value. Asks for confirmation first." /> 
+                             <button id="T34Btn" label="Remove Formulas from Workbook" imageMso="FormulaEvaluate" onAction="RemoveFormulasfromWorkbook" screentip="Remove Formulas from Workbook" supertip="Replaces every formula in the active workbook with its current value. Protected sheets are skipped. Asks for confirmation first." /> 
+                             <button id="T35Btn" label="Shrink Excel File" imageMso="ExportFile" onAction="ExcelShrinkFile" screentip="Shrink Excel File" supertip="Tool deletes unnecessary elements in the current Excel workbook, so the file size is reduced." />   
+                             <menuSeparator id="Sep55" />   
+                             <button id="VBA11Btn" label="Show Run Macro Dialog" imageMso="MacrosGallery" onAction="ShowMacroDialog" screentip="Show Run Macro Dialog" supertip="Show macros in current workbook (Alt + F8)." />   
+                             <button id="VBA12Btn" label="Show VBA Editor" imageMso="ViewVisualBasicCode" onAction="Ribbon_OpenVBAEditor" screentip="Show VBA Editor" supertip="Launch VBA editor (Alt + F11)." />   
+                             <button id="VBA13Btn" label="Show Startup Path" imageMso="HeaderFooterFilePathInsert" onAction="ShowStartupPath" screentip="Show Startup Path" supertip="Show Startup Path and Copy to Clipboard." />
+                             <button id="VBA14Btn" label="Show AddIn Location" imageMso="HeaderFooterFilePathInsert" onAction="ShowAddInLocation" screentip="Show AddIn Location" supertip="Show AddIn Location. and Copy to Clipboard." />   
+                           </menu>
+                    </splitButton>
+                    </group>             
+                    <group id="LambdaGrp" label="LAMBDA Studio">
+                    <editBox id="LambdaSearch" label="Filter LAMBDA Library: " sizeString="XXXXXXXXXXXXXXXXXXXXXXXXXXXX" onChange="LambdaFilterChanged" getText="LambdaFilterText" screentip="Filter LAMBDA Library" supertip="Filter the library by function name or description. Several words narrow the list further - every word must match."/>
+                    <dropDown id="LambdaList" label="LAMBDA Library functions: " sizeString="XXXXXXXXXXXXXXXXXXXXXXXXXX" getItemCount="LambdaListCount" getItemLabel="LambdaListLabel" getSelectedItemIndex="LambdaListSelected" getScreentip="LambdaListScreentip" getSupertip="LambdaListSupertip" onAction="LambdaListAction"/>
+                    <dropDown id="LambdaFunctions" label="Active File (AF) LAMBDAs: " sizeString="XXXXXXXXXXXXXXXXXXXXXXXXXX" getItemCount="LambdaAFCount" getItemLabel="LambdaAFLabel" getSelectedItemIndex="LambdaAFSelected" onAction="LambdaAFAction" screentip="Active File (AF) LAMBDAs" supertip="Workbook-scoped LAMBDA functions defined in the active workbook."/>
+                    <separator id="VSep99"/>
+                    <box id="Box44" boxStyle="vertical">
+                    <splitButton id="Lambda10" size="large">
+                    <button id="Lambda02" label="LAMBDA Tools" imageMso="DataModelManage"/>
+                    <menu id="Lambda01">
+                    <button id="Lambda11Btn" imageMso="ActionInsertAccess" label="Inject selected LAMBDA to active file" onAction="LambdaInjectSelected" screentip="Inject selected LAMBDA to active file" supertip="Add the LAMBDA selected in the library list to the active workbook's defined names."/>
+                    <button id="Lambda12Btn" imageMso="TableInsert" label="Inject entire LAMBDA library to active file" onAction="LambdaInjectAll" screentip="Inject entire LAMBDA library to active file" supertip="Add every function in the library to the active workbook. Existing names with the same name are replaced."/>
+                    <button id="Lambda13Btn" imageMso="ImportHtmlDocument" label="Inject LAMBDAs from GitHub to active file" onAction="LambdaInjectFromGist" screentip="Inject LAMBDAs from GitHub to active file" supertip="Download a GitHub Gist in Excel Labs format and add its functions to the active workbook, without storing them in the library."/>
+                    <menuSeparator id="Sep72"/>
+                    <menu id="LambdaSub21" label="Manage LAMBDA Library:" imageMso="DataModelManage">
+                    <button id="Lambda21Btn" imageMso="Rename" label="Rename selected LAMBDA" onAction="LambdaRename" screentip="Rename selected LAMBDA" supertip="Rename the selected function in the library. Workbooks that already use it are not affected."/>
+                    <button id="Lambda22Btn" imageMso="PowerQuerySearchByName" label="Add description to selected LAMBDA" onAction="LambdaDescribe" screentip="Add description to selected LAMBDA" supertip="Set the description shown in the dropdown tooltip. It is also written to the name's comment when the function is injected."/>
+                    <button id="Lambda24Btn" imageMso="DeleteAll" label="Delete selected LAMBDA from library" onAction="LambdaDelete" screentip="Delete selected LAMBDA from library" supertip="Remove the selected function from the library. Workbooks that already use it are not affected."/>
+                    <menuSeparator id="Sep73"/>
+                    <button id="Lambda31Btn" imageMso="ExportFile" label="Export LAMBDA library to Excel file" onAction="LambdaExportXlsx" screentip="Export LAMBDA library to Excel file" supertip="Save the whole library to a new .xlsx as a Function / Formula / Description table. The backup format - readable, editable, and read straight back by the matching import."/>
+                    <button id="Lambda32Btn" imageMso="FileImport" label="Import LAMBDA library from Excel file" onAction="LambdaImportXlsx" screentip="Import LAMBDA library from Excel file" supertip="Add functions from an .xlsx with Function and Formula columns. Columns are matched by heading, so their order does not matter."/>
+                    <menuSeparator id="Sep76"/>
+                    <button id="Lambda33Btn" imageMso="FileSaveAs" label="Export LAMBDA library to text (Gist format)" onAction="LambdaExportText" screentip="Export LAMBDA library to text (Gist format)" supertip="Save the library as Advanced Formula Environment text. Round-trips with Excel Labs, pastes straight into a GitHub Gist, and diffs cleanly in source control."/>
+                    <button id="Lambda34Btn" imageMso="ImportHtmlDocument" label="Import LAMBDA library from text (Gist format)" onAction="LambdaImportText" screentip="Import LAMBDA library from text (Gist format)" supertip="Add functions from a local Advanced Formula Environment text file - the same format the GitHub import reads."/>
+                    </menu>
+                    <menuSeparator id="Sep74"/>
+                    <button id="Lambda41" imageMso="FileImport" label="Import selected AF LAMBDA to library" onAction="LambdaImportSelectedAF" screentip="Import selected AF LAMBDA to library" supertip="Copy the LAMBDA selected in the Active File list into the library, keeping its name comment as the description."/>
+                    <button id="Lambda42" imageMso="FileImport" label="Import all AF LAMBDAs to library" onAction="LambdaImportAllAF" screentip="Import all AF LAMBDAs to library" supertip="Copy every workbook-scoped LAMBDA in the active workbook into the library."/>
+                    <button id="Lambda43" imageMso="ImportHtmlDocument" label="Import LAMBDAs from GitHub to library" onAction="LambdaImportFromGist" screentip="Import LAMBDAs from GitHub to library" supertip="Download a GitHub Gist in Excel Labs format and store its functions in the library for reuse in any workbook."/>
+                    <menuSeparator id="Sep75"/>
+                    </menu>
+                    </splitButton>
+                    </box>
+                    </group>        
+<!--        
+                     <group id="CompanyGrp" label="Company Tools">
+                     <button id="C12Btn" label="Reset Slicers" size="large" imageMso="FormFieldReset" onAction="Reset_Slicers" screentip="Reset Timeline and Slicers" supertip="Tool resets the timeline and slicers to their default values." />
+                     <splitButton id="Print10" size="large">
+                        <button id="Print02" label="Print Reports" imageMso="PrintDataOnly" />
+                        <menu id="Print03">                                            
+                             <button id="Print31Btn" label="Print Triangle Reports" imageMso="PrintShapeSheet" onAction="PrintTriangleReports" screentip="Print Triangle Reports" supertip="Tool loops through and prints the Triangle reports." />
+                             <menuSeparator id="Sep81" />    
+                             <button id="Print32Btn" label="Print Trend Reports" imageMso="PrintShapeSheet" onAction="PrintTrendReports" screentip="Print Trend Reports" supertip="To0l loops through and prints the Book of Business trend reports." />
+                             <menuSeparator id="Sep82" />    
+                             <button id="Print33Btn" label="Print Charts" imageMso="ChartTypeComboInsertDialog" onAction="PrintMixSnapshotReports" screentip="Print Charts" supertip="Tool loops through and prints the Book of Business charts." />   
+                             <menuSeparator id="Sep83" />    
+                             <button id="Print34Btn" label="Print PI Scorecards" imageMso="PrintShapeSheet" onAction="PrintScorecardReports" screentip="Print PI Scorecards" supertip="Tool loops through and prints the PI Scorecard report and charts." /> 
+                             <menuSeparator id="Sep84" />  
+                             <button id="C31Btn" label="Select Printer" imageMso="ChangePrinter" onAction="Select_the_Printer" screentip="Select Printer" supertip="Tool allow user to select printer from list as some print tools assume PDF output as default." />      
+                        </menu>
+                    </splitButton>                  
+                 </group>
+-->
+                     <group id="SettingsGrp" label="Settings">
+                     <button id="S11Btn" label="XL Edge Settings" size="large" imageMso="ApplicationOptionsDialog" onAction="ShowSettingsDialog" screentip="XL Edge Settings" supertip="Edit the reporting period, default row heights and widths, footer text, and the company name list used by Insert Company Name." />
+                     <button id="S12Btn" label="Reload Settings" size="normal" imageMso="Refresh" onAction="ReloadSettings" screentip="Reload Settings" supertip="Re-read settings from the add-in's reference sheet. Only needed if the sheet was edited by hand rather than through the settings form." />
+                     <button id="S13Btn" label="About XL Edge" size="normal" imageMso="Info" onAction="ShowAboutDialog" screentip="About XL Edge" supertip="Add-in name, version number, and the MIT license this add-in is distributed under."/>
+                 </group>                         
+            </tab>
+        </tabs>
+    </ribbon>
+</customUI>

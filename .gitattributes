@@ -1,0 +1,8 @@
+# VBA source is text; keep it CRLF (VBA's native line ending)
+*.bas text eol=crlf
+*.cls text eol=crlf
+*.frm text eol=crlf
+*.xml text
+# Binaries
+*.xlam binary
+*.png binary
