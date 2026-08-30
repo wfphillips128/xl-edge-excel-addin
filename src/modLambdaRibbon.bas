@@ -395,7 +395,7 @@ Public Sub LambdaInjectSelected(control As IRibbonControl)
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromLibrary(mSelectedName)
     If entries.Count = 0 Then
-        Warn "'" & mSelectedName & "' is no longer in the library."
+        warn "'" & mSelectedName & "' is no longer in the library."
         Lambda_Update
         Exit Sub
     End If
@@ -413,7 +413,7 @@ Public Sub LambdaInjectAll(control As IRibbonControl)
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromLibrary()
     If entries.Count = 0 Then
-        Warn "The LAMBDA library is empty."
+        warn "The LAMBDA library is empty."
         Exit Sub
     End If
 
@@ -442,7 +442,7 @@ Public Sub LambdaInjectFromGist(control As IRibbonControl)
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromGistUrl(url)
     If entries.Count = 0 Then
-        Warn "No LAMBDA / named-formula definitions found at that URL." & vbCrLf & _
+        warn "No LAMBDA / named-formula definitions found at that URL." & vbCrLf & _
              "Confirm it is a single-file Gist in the Advanced Formula Environment format."
         Exit Sub
     End If
@@ -467,13 +467,13 @@ End Sub
 ' state, so bailing out with EnableEvents still False would leave events dead
 ' for every open workbook until Excel restarts.
 Private Sub InjectAndReport(ByVal entries As Collection, ByVal wb As Workbook)
-    Dim failed As New Collection
+    Dim Failed As New Collection
     Dim wrapped As New Collection
     Dim added As Long
 
     On Error GoTo CleanExit
     AppStateManager.FastModeOn
-    added = modLambdaLib.AddEntriesToWorkbook(entries, wb, failed, wrapped)
+    added = modLambdaLib.AddEntriesToWorkbook(entries, wb, Failed, wrapped)
 
 CleanExit:
     AppStateManager.FastModeOff
@@ -493,8 +493,8 @@ CleanExit:
               "Call them with brackets - NAME() rather than NAME:" & NameList(wrapped)
     End If
 
-    If failed.Count > 0 Then msg = msg & vbCrLf & vbCrLf & _
-                                   "Skipped (invalid name or conflict):" & NameList(failed)
+    If Failed.Count > 0 Then msg = msg & vbCrLf & vbCrLf & _
+                                   "Skipped (invalid name or conflict):" & NameList(Failed)
 
     MsgBox msg, vbInformation, DIALOG_TITLE
 End Sub
@@ -509,14 +509,14 @@ Public Sub LambdaImportSelectedAF(control As IRibbonControl)
     If Not HaveWorkbook() Then Exit Sub
 
     If Len(mAFSelectedName) = 0 Then
-        Warn "Select a LAMBDA from the 'Active File (AF) LAMBDAs' list first."
+        warn "Select a LAMBDA from the 'Active File (AF) LAMBDAs' list first."
         Exit Sub
     End If
 
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromWorkbookNames(ActiveWorkbook, mAFSelectedName)
     If entries.Count = 0 Then
-        Warn "'" & mAFSelectedName & "' is no longer defined in '" & ActiveWorkbook.name & "'."
+        warn "'" & mAFSelectedName & "' is no longer defined in '" & ActiveWorkbook.name & "'."
         Lambda_Update
         Exit Sub
     End If
@@ -534,7 +534,7 @@ Public Sub LambdaImportAllAF(control As IRibbonControl)
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromWorkbookNames(ActiveWorkbook)
     If entries.Count = 0 Then
-        Warn "'" & ActiveWorkbook.name & "' has no workbook-scoped LAMBDA functions."
+        warn "'" & ActiveWorkbook.name & "' has no workbook-scoped LAMBDA functions."
         Exit Sub
     End If
 
@@ -561,7 +561,7 @@ Public Sub LambdaImportFromGist(control As IRibbonControl)
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromGistUrl(url)
     If entries.Count = 0 Then
-        Warn "No LAMBDA / named-formula definitions found at that URL."
+        warn "No LAMBDA / named-formula definitions found at that URL."
         Exit Sub
     End If
     If Len(moduleName) > 0 Then Set entries = modLambdaLib.ApplyModuleNamespace(entries, moduleName)
@@ -578,18 +578,18 @@ End Sub
 ' Shared tail of every "into the library" action.
 Private Sub StoreAndReport(ByVal entries As Collection)
     Dim added As Long, updated As Long
-    Dim ok As Boolean
+    Dim OK As Boolean
 
     On Error GoTo CleanExit
     AppStateManager.FastModeOn
-    ok = modLambdaLib.AddEntriesToLibrary(entries, added, updated)
+    OK = modLambdaLib.AddEntriesToLibrary(entries, added, updated)
 
 CleanExit:
     AppStateManager.FastModeOff
     If Err.Number <> 0 Then Err.Raise Err.Number, "StoreAndReport", Err.description
 
-    If Not ok Then
-        Warn "The library could not be updated." & vbCrLf & vbCrLf & AddInStorage.LastError
+    If Not OK Then
+        warn "The library could not be updated." & vbCrLf & vbCrLf & AddInStorage.LastError
         Exit Sub
     End If
 
@@ -619,9 +619,9 @@ Public Sub LambdaRename(control As IRibbonControl)
         If cancelled Then Exit Sub
 
         If Len(newName) = 0 Then
-            Warn "An empty string is not a valid name."
+            warn "An empty string is not a valid name."
         ElseIf Not modLambdaLib.IsValidName(newName) Then
-            Warn "'" & newName & "' is not a valid function name." & vbCrLf & vbCrLf & _
+            warn "'" & newName & "' is not a valid function name." & vbCrLf & vbCrLf & _
                  "Start with a letter or underscore, then letters, digits, " & _
                  "underscores or dots. No spaces."
         Else
@@ -630,7 +630,7 @@ Public Sub LambdaRename(control As IRibbonControl)
     Loop
 
     If Not AddInStorage.RenameLambda(mSelectedName, newName) Then
-        Warn AddInStorage.LastError
+        warn AddInStorage.LastError
         Exit Sub
     End If
 
@@ -654,7 +654,7 @@ Public Sub LambdaDescribe(control As IRibbonControl)
     If cancelled Then Exit Sub
 
     If Not AddInStorage.SetLambdaDescription(mSelectedName, answer) Then
-        Warn AddInStorage.LastError
+        warn AddInStorage.LastError
         Exit Sub
     End If
 
@@ -674,7 +674,7 @@ Public Sub LambdaDelete(control As IRibbonControl)
               vbExclamation + vbYesNo + vbDefaultButton2, DIALOG_TITLE) <> vbYes Then Exit Sub
 
     If Not AddInStorage.DeleteLambda(mSelectedName) Then
-        Warn AddInStorage.LastError
+        warn AddInStorage.LastError
         Exit Sub
     End If
 
@@ -705,7 +705,7 @@ Public Sub LambdaExportXlsx(control As IRibbonControl)
     path = Application.GetSaveAsFilename( _
         InitialFileName:="XL Edge LAMBDA library.xlsx", _
         FileFilter:="Excel Workbook (*.xlsx), *.xlsx", _
-        Title:="Export LAMBDA library to Excel file")
+        title:="Export LAMBDA library to Excel file")
     If VarType(path) = vbBoolean Then Exit Sub
 
     modLambdaLib.ExportLibraryToXlsx CStr(path)
@@ -722,13 +722,13 @@ Public Sub LambdaImportXlsx(control As IRibbonControl)
     Dim path As Variant
     path = Application.GetOpenFilename( _
         FileFilter:="Excel files (*.xlsx;*.xlsm;*.xls), *.xlsx;*.xlsm;*.xls", _
-        Title:="Import LAMBDA library from Excel file")
+        title:="Import LAMBDA library from Excel file")
     If VarType(path) = vbBoolean Then Exit Sub
 
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromXlsxFile(CStr(path))
     If entries.Count = 0 Then
-        Warn "No functions found in that file." & vbCrLf & vbCrLf & _
+        warn "No functions found in that file." & vbCrLf & vbCrLf & _
              "It needs a 'Function' column and a 'Formula' column, with a " & _
              "'Description' column optional."
         Exit Sub
@@ -751,7 +751,7 @@ Public Sub LambdaExportText(control As IRibbonControl)
     path = Application.GetSaveAsFilename( _
         InitialFileName:="XL Edge LAMBDA library.txt", _
         FileFilter:="Text file (*.txt), *.txt", _
-        Title:="Export LAMBDA library to text (Gist format)")
+        title:="Export LAMBDA library to text (Gist format)")
     If VarType(path) = vbBoolean Then Exit Sub
 
     modLambdaLib.ExportLibraryToTextFile CStr(path)
@@ -768,13 +768,13 @@ Public Sub LambdaImportText(control As IRibbonControl)
     Dim path As Variant
     path = Application.GetOpenFilename( _
         FileFilter:="Text files (*.txt), *.txt", _
-        Title:="Import LAMBDA library from text (Gist format)")
+        title:="Import LAMBDA library from text (Gist format)")
     If VarType(path) = vbBoolean Then Exit Sub
 
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromTextFile(CStr(path))
     If entries.Count = 0 Then
-        Warn "No LAMBDA definitions found in that file." & vbCrLf & vbCrLf & _
+        warn "No LAMBDA definitions found in that file." & vbCrLf & vbCrLf & _
              "Expected Advanced Formula Environment format: NAME = LAMBDA(...);"
         Exit Sub
     End If
@@ -842,7 +842,7 @@ Private Function AskModuleName(ByRef cancelled As Boolean) As String
     m = Trim$(answer)
     If Len(m) > 0 Then
         If Not modLambdaLib.IsValidName(m) Then
-            Warn "'" & m & "' is not a valid module name."
+            warn "'" & m & "' is not a valid module name."
             cancelled = True
             Exit Function
         End If
@@ -853,7 +853,7 @@ End Function
 
 Private Function HaveWorkbook() As Boolean
     If Application.Workbooks.Count = 0 Then
-        Warn "Open a workbook first - there is nothing to act on."
+        warn "Open a workbook first - there is nothing to act on."
         Exit Function
     End If
     HaveWorkbook = True
@@ -861,7 +861,7 @@ End Function
 
 Private Function HaveSelection() As Boolean
     If Len(mSelectedName) = 0 Or mSelectedName = NONE_ITEM Then
-        Warn "Select a function from the 'LAMBDA Library functions' list first."
+        warn "Select a function from the 'LAMBDA Library functions' list first."
         Exit Function
     End If
     HaveSelection = True
@@ -869,7 +869,7 @@ End Function
 
 Private Function HaveLibrary() As Boolean
     If AddInStorage.LambdaCount() = 0 Then
-        Warn "The LAMBDA library is empty - there is nothing to export."
+        warn "The LAMBDA library is empty - there is nothing to export."
         Exit Function
     End If
     HaveLibrary = True
@@ -902,7 +902,7 @@ Private Function NameList(ByVal names As Collection) As String
     NameList = s
 End Function
 
-Private Sub Warn(ByVal message As String)
+Private Sub warn(ByVal message As String)
     MsgBox message, vbExclamation, DIALOG_TITLE
 End Sub
 

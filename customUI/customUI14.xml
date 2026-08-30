@@ -98,7 +98,10 @@
                     </splitButton>           
                      <splitButton id="XLEdge5" size="large">
                         <button id="MXLEdge6" label="Tools" imageMso="VisualBasic" />
-                        <menu id="XLEdge7">       
+                        <menu id="XLEdge7">   
+                            <button id="Panel11Btn" label="Create Panel Chart" imageMso="PivotChartMultiplePlots" onAction="CreatePanelChart" screentip="Create Panel Chart"
+                                    supertip="Build a grid of small charts - one chart object, one shared scale, on its own new sheet. Select your data block first to build from it, or run it with nothing selected to get a placeholder block to paste over. Prints on one landscape page." />
+                             <menuSeparator id="PanelSep01" />   
                              <button id="T13Btn" label="Speak Cell Contents" imageMso="SpeakCells" onAction="SpeakCellContents" screentip="Speak Cell Contents" supertip="Have Excel speak the contents of selected range." /> 
                              <button id="T21Btn" label="Expand and Collapse Formula Bar" imageMso="MenuExpandCollapse" onAction="ToggleFormulaBar" screentip="Expand and Collapse Formula Bar" supertip="Tool to expand and collapse the formula bar (Ctrl + Shift + U)." /> 
                              <button id="T22Btn" label="Toggle Grid" imageMso="TableShowGridlines" onAction="ToggleGrid" screentip="Toggle Grid" supertip="Tool to turn Excel's gridlines on and off." />                               
@@ -152,7 +155,7 @@
                     </splitButton>
                     </box>
                     </group>        
-<!--        
+<!--         
                      <group id="CompanyGrp" label="Company Tools">
                      <button id="C12Btn" label="Reset Slicers" size="large" imageMso="FormFieldReset" onAction="Reset_Slicers" screentip="Reset Timeline and Slicers" supertip="Tool resets the timeline and slicers to their default values." />
                      <splitButton id="Print10" size="large">

@@ -41,7 +41,7 @@ Private Sub ApplyFactorToSelection(factor As Double)
     On Error GoTo CleanUp
     AppStateManager.FastModeOn
 
-    data = rng.Value
+    data = rng.value
 
     ' Handle single-cell case (not an array)
     If Not IsArray(data) Then
@@ -58,7 +58,7 @@ Private Sub ApplyFactorToSelection(factor As Double)
         Next r
     End If
 
-    rng.Value = data
+    rng.value = data
 
 CleanUp:
     errNum = Err.Number
@@ -145,7 +145,7 @@ Public Sub FormatSelectedColumns(control As IRibbonControl)
         prompt:="Select mode:" & vbCrLf & _
                 "1 = Column Mode (used rows only)" & vbCrLf & _
                 "2 = Range Mode (default)", _
-        Title:="Formatting Mode", _
+        title:="Formatting Mode", _
         Type:=1)
 
     ' Default to Range Mode if Cancel or blank
@@ -172,7 +172,7 @@ Public Sub FormatSelectedColumns(control As IRibbonControl)
                 "7 = Factor" & vbCrLf & _
                 "8 = Date" & vbCrLf & _
                 "9 = Year", _
-        Title:="Format Selection", _
+        title:="Format Selection", _
         Type:=1)
         
     If formatChoice = False Then Exit Sub
@@ -277,7 +277,7 @@ Sub ColumnWidthsPaste(control As IRibbonControl)
         prompt:="Select the TOP-LEFT cell of the destination range." & vbCrLf & _
                 "The destination range will automatically resize to match the source selection (" & _
                 src.rows.Count & " rows x " & src.Columns.Count & " columns).", _
-        Title:="Copy Column Widths (No Clipboard)", _
+        title:="Copy Column Widths (No Clipboard)", _
         Type:=8)
     
     ' If user clicks Cancel, InputBox returns False (as a Variant),
@@ -408,7 +408,7 @@ Sub ExactFormulaCopy(control As IRibbonControl)
     Set destTopLeft = Application.InputBox( _
         prompt:="Select the TOP-LEFT cell of the destination." & vbCrLf & _
                 "Destination will be resized to match source (" & src.rows.Count & " rows x " & src.Columns.Count & " columns).", _
-        Title:="Copy Formulas Exactly (No Clipboard)", _
+        title:="Copy Formulas Exactly (No Clipboard)", _
         Type:=8)
 
     ' If user cancels, Application.InputBox(Type:=8) often raises an error,
@@ -592,23 +592,23 @@ Sub InsertCompanyName(control As IRibbonControl)
     End If
 
     Dim current As String
-    current = CStr(ActiveCell.Value)
+    current = CStr(ActiveCell.value)
 
     ' Find the current value and advance one, wrapping at the end.
     Dim i As Long
     For i = LBound(options) To UBound(options)
         If StrComp(current, CStr(options(i)), vbTextCompare) = 0 Then
             If i = UBound(options) Then
-                ActiveCell.Value = options(LBound(options))
+                ActiveCell.value = options(LBound(options))
             Else
-                ActiveCell.Value = options(i + 1)
+                ActiveCell.value = options(i + 1)
             End If
             Exit Sub
         End If
     Next i
 
     ' Cell is blank or holds something not in the list -> start at the top.
-    ActiveCell.Value = options(LBound(options))
+    ActiveCell.value = options(LBound(options))
 
 End Sub
 
@@ -625,7 +625,7 @@ Dim rngCell As Range
                 .LineStyle = xlDash
                 .ColorIndex = 0
                 .TintAndShade = 0
-                .Weight = xlThin
+                .weight = xlThin
             End With
         Next
     Next
@@ -752,7 +752,7 @@ Sub Wrap_with_Round(control As IRibbonControl)
     v = Application.InputBox( _
             prompt:="Enter the number of decimal places" & vbCrLf & _
                     "to use in the ROUND formula:", _
-            Title:=TITLE_TXT, Default:="0", Type:=1)
+            title:=TITLE_TXT, Default:="0", Type:=1)
 
     If VarType(v) = vbBoolean Then Exit Sub
 
@@ -770,7 +770,7 @@ Sub Wrap_with_Error(control As IRibbonControl)
             prompt:="Enter the value to return" & vbCrLf & _
                     "if an error condition is found:" & vbCrLf & vbCrLf & _
                     "(text needs its own quotes, e.g. ""n/a"" )", _
-            Title:=TITLE_TXT, Default:="0")
+            title:=TITLE_TXT, Default:="0")
 
     If VarType(v) = vbBoolean Then Exit Sub
     If Len(Trim$(CStr(v))) = 0 Then Exit Sub
@@ -841,7 +841,7 @@ Sub InsertSymbol(control As IRibbonControl)
                 "  4 - Warning" & vbCrLf & _
                 "  5 - Delta" & vbCrLf & _
                 "  6 - Sigma (Total)", _
-        Title:="Insert Symbol", _
+        title:="Insert Symbol", _
         Type:=1)    ' Type 1 = number only
 
     ' Handle Cancel or invalid input
@@ -1148,7 +1148,7 @@ ActiveWorkbook.Windows(1).SelectedSheets.Copy
     Dim ws As Worksheet
     For Each ws In Worksheets
       With ws.UsedRange
-        .Value = .Value
+        .value = .value
       End With
     Next ws
 
@@ -1253,7 +1253,7 @@ Sub replaceBlankWithZero(control As IRibbonControl)
     On Error GoTo CleanExit
 
     If Not blanks Is Nothing Then
-        blanks.Value = 0
+        blanks.value = 0
         n = n + blanks.Cells.Count
     End If
 
@@ -1261,7 +1261,7 @@ Sub replaceBlankWithZero(control As IRibbonControl)
     If Not textCells Is Nothing Then
         For Each c In textCells.Cells
             If Len(Trim$(CStr(c.Value2))) = 0 Then
-                c.Value = 0
+                c.value = 0
                 n = n + 1
             End If
         Next c
@@ -1506,7 +1506,7 @@ Public Sub FillBlankCellsWithValue(control As IRibbonControl)
     ' Prompt user
     inputValue = Application.InputBox( _
         prompt:="Enter value to insert into blank cells:", _
-        Title:="Fill Blanks", _
+        title:="Fill Blanks", _
         Type:=2)
 
     ' Cancel returns Boolean False. Testing the value itself meant a typed
@@ -1523,10 +1523,10 @@ Public Sub FillBlankCellsWithValue(control As IRibbonControl)
 
     If Not blankCells Is Nothing Then
         ' Case 1: Real blanks inside UsedRange
-        blankCells.Value = inputValue
+        blankCells.value = inputValue
     Else
         ' Case 2: Entire selection is empty (outside UsedRange)
-        rngSel.Value = inputValue
+        rngSel.value = inputValue
     End If
 
 CleanUp:
@@ -1668,7 +1668,7 @@ Public Sub AddPrefix(control As IRibbonControl)
     ' Prompt user
     prefixValue = Application.InputBox( _
         prompt:="Enter prefix:", _
-        Title:="Prefix", _
+        title:="Prefix", _
         Type:=2)
         
     ' Cancel returns Boolean False; a typed zero must not count as one.
@@ -1728,7 +1728,7 @@ Public Sub AddSuffix(control As IRibbonControl)
     ' Prompt user
     suffixValue = Application.InputBox( _
         prompt:="Enter Suffix:", _
-        Title:="Suffix", _
+        title:="Suffix", _
         Type:=2)
         
     ' Cancel returns Boolean False; a typed zero must not count as one.
@@ -1789,7 +1789,7 @@ Public Sub RemovePrefix(control As IRibbonControl)
     ' Prompt user
     prefixValue = Application.InputBox( _
         prompt:="Enter prefix to remove:", _
-        Title:="Remove Prefix", _
+        title:="Remove Prefix", _
         Type:=2)
         
     ' Cancel returns Boolean False; a typed zero must not count as one.
@@ -1856,7 +1856,7 @@ Public Sub RemoveSuffix(control As IRibbonControl)
     ' Prompt user
     suffixValue = Application.InputBox( _
         prompt:="Enter suffix to remove:", _
-        Title:="Remove Suffix", _
+        title:="Remove Suffix", _
         Type:=2)
         
     ' Cancel returns Boolean False; a typed zero must not count as one.
@@ -1915,7 +1915,7 @@ Sub ConvertSentenceCase2()
 Dim rng As Range
     For Each rng In Selection
     If WorksheetFunction.IsText(rng) Then
-    rng.Value = UCase(Left(rng, 1)) & LCase(Right(rng, Len(rng) - 1))
+    rng.value = UCase(Left(rng, 1)) & LCase(Right(rng, Len(rng) - 1))
     End If
     Next rng
 End Sub
@@ -1930,7 +1930,7 @@ Sub ConvertProperCase2()
 Dim rng As Range
     For Each rng In Selection
     If WorksheetFunction.IsText(rng) Then
-    rng.Value = WorksheetFunction.Proper(rng.Value)
+    rng.value = WorksheetFunction.Proper(rng.value)
     End If
     Next
 End Sub
@@ -1943,7 +1943,7 @@ Sub ConvertLowerCase2()
 Dim rng As Range
     For Each rng In Selection
     If Application.WorksheetFunction.IsText(rng) Then
-    rng.Value = LCase(rng)
+    rng.value = LCase(rng)
     End If
     Next
 End Sub
@@ -1956,7 +1956,7 @@ Sub ConvertUpperCase2()
 Dim rng As Range
     For Each rng In Selection
     If Application.WorksheetFunction.IsText(rng) Then
-    rng.Value = UCase(rng)
+    rng.value = UCase(rng)
     End If
     Next
 End Sub
@@ -1970,7 +1970,7 @@ Dim FirstCellValue3 As String
 Dim TestValue As Long
 
 Set cell = Selection
-FirstCellValue = cell.Cells(1, 1).Value
+FirstCellValue = cell.Cells(1, 1).value
 FirstCellValue2 = Left(FirstCellValue, 1)
 FirstCellValue3 = Right(FirstCellValue, Len(FirstCellValue) - 1)
 
@@ -2450,7 +2450,7 @@ Sub ExcelShrinkFile(control As IRibbonControl)
             If Not fCell Is Nothing Then lastCol = Application.Max(lastCol, fCell.Column)
 
             '--- Adjust for shapes extending range
-            For Each shp In .Shapes
+            For Each shp In .shapes
                 On Error Resume Next
                 shpLastRow = shp.BottomRightCell.Row
                 shpLastCol = shp.BottomRightCell.Column
@@ -2510,7 +2510,7 @@ End Sub
 Private Function WriteFormulaListing(ByVal c As Range) As Boolean
     Dim srcCell As Range
 
-    Set srcCell = c.Offset(0, -1)
+    Set srcCell = c.offset(0, -1)
     If Not srcCell.HasFormula Then Exit Function
 
     If c.NumberFormat = "@" Then c.NumberFormat = "General"
@@ -2528,7 +2528,7 @@ End Function
 '  further procedure calls, which is exactly the sort of thing that works until
 '  one day it does not.
 ' ----------------------------------------------------------------------------
-Private Sub ReportFormulaRemoval(ByVal Title As String, _
+Private Sub ReportFormulaRemoval(ByVal title As String, _
                                  ByVal cellsDone As Long, _
                                  ByVal areasFailed As Long, _
                                  ByVal skipped As String, _
@@ -2538,12 +2538,12 @@ Private Sub ReportFormulaRemoval(ByVal Title As String, _
 
     If errNum <> 0 Then
         MsgBox "Could not finish removing formulas." & vbCrLf & vbCrLf & _
-               "Error " & errNum & ": " & errTxt, vbExclamation, Title
+               "Error " & errNum & ": " & errTxt, vbExclamation, title
         Exit Sub
     End If
 
     If cellsDone = 0 And areasFailed = 0 And Len(skipped) = 0 Then
-        MsgBox "No formulas were found.", vbInformation, Title
+        MsgBox "No formulas were found.", vbInformation, title
         Exit Sub
     End If
 
@@ -2560,7 +2560,7 @@ Private Sub ReportFormulaRemoval(ByVal Title As String, _
         msg = msg & vbCrLf & vbCrLf & "Protected worksheets skipped:" & skipped
     End If
 
-    MsgBox msg, vbInformation, Title
+    MsgBox msg, vbInformation, title
 End Sub
 
 
@@ -2577,7 +2577,7 @@ End Sub
 '  handler -- an error mid-loop left calculation stuck on manual for the rest
 '  of the session. AppStateManager captures and restores the real prior state.
 ' ----------------------------------------------------------------------------
-Private Sub WrapSelectionFormulas(ByVal Title As String, _
+Private Sub WrapSelectionFormulas(ByVal title As String, _
                                   ByVal wrapPrefix As String, _
                                   ByVal wrapSuffix As String, _
                                   ByVal skipIfStartsWith As String)
@@ -2587,7 +2587,7 @@ Private Sub WrapSelectionFormulas(ByVal Title As String, _
     Dim errNum As Long
     Dim errTxt As String
 
-    If Not GetSelectionRange(rg, False, Title) Then Exit Sub
+    If Not GetSelectionRange(rg, False, title) Then Exit Sub
 
     On Error GoTo CleanExit
     AppStateManager.FastModeOn
@@ -2608,9 +2608,9 @@ CleanExit:
     AppStateManager.FastModeOff
     If errNum <> 0 Then
         MsgBox "Could not finish wrapping the selected formulas." & vbCrLf & vbCrLf & _
-               "Error " & errNum & ": " & errTxt, vbExclamation, Title
+               "Error " & errNum & ": " & errTxt, vbExclamation, title
     ElseIf n = 0 Then
-        MsgBox "No formulas in the selection needed wrapping.", vbInformation, Title
+        MsgBox "No formulas in the selection needed wrapping.", vbInformation, title
     End If
 End Sub
 
@@ -2622,14 +2622,14 @@ End Sub
 '  Selection.Value = Selection.Value, silently destroying every formula in the
 '  selection before it started.
 ' ----------------------------------------------------------------------------
-Private Sub ApplySignToInputCells(ByVal Title As String, ByVal makeAbsolute As Boolean)
+Private Sub ApplySignToInputCells(ByVal title As String, ByVal makeAbsolute As Boolean)
     Dim rg As Range
     Dim c As Range
     Dim n As Long
     Dim errNum As Long
     Dim errTxt As String
 
-    If Not GetSelectionRange(rg, False, Title) Then Exit Sub
+    If Not GetSelectionRange(rg, False, title) Then Exit Sub
 
     On Error GoTo CleanExit
     AppStateManager.FastModeOn
@@ -2640,9 +2640,9 @@ Private Sub ApplySignToInputCells(ByVal Title As String, ByVal makeAbsolute As B
                 ' IsNumeric(Empty) is True in VBA, hence the IsEmpty guard first.
                 If IsNumeric(c.Value2) Then
                     If makeAbsolute Then
-                        c.Value = Abs(c.Value2)
+                        c.value = Abs(c.Value2)
                     Else
-                        c.Value = c.Value2 * -1
+                        c.value = c.Value2 * -1
                     End If
                     n = n + 1
                 End If
@@ -2656,9 +2656,9 @@ CleanExit:
     AppStateManager.FastModeOff
     If errNum <> 0 Then
         MsgBox "Could not finish." & vbCrLf & vbCrLf & _
-               "Error " & errNum & ": " & errTxt, vbExclamation, Title
+               "Error " & errNum & ": " & errTxt, vbExclamation, title
     ElseIf n = 0 Then
-        MsgBox "No numeric input cells were found in the selection.", vbInformation, Title
+        MsgBox "No numeric input cells were found in the selection.", vbInformation, title
     End If
 End Sub
 
@@ -2698,7 +2698,7 @@ End Sub
 
 ' Shared by Switch Portrait and Switch Landscape.
 Private Sub ApplyPageOrientation(ByVal newOrientation As XlPageOrientation, _
-                                 ByVal Title As String)
+                                 ByVal title As String)
     Dim sh As Object
     Dim errNum As Long
     Dim errTxt As String
@@ -2716,5 +2716,5 @@ CleanUp:
     errNum = Err.Number
     errTxt = Err.description
     AppStateManager.FastModeOff
-    ReportError errNum, errTxt, Title
+    ReportError errNum, errTxt, title
 End Sub

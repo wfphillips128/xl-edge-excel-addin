@@ -27,14 +27,14 @@ Option Explicit
 ' blocks. rg is only Set when the function returns True.
 Public Function GetSelectionRange(ByRef rg As Range, _
                                   Optional ByVal singleAreaOnly As Boolean = True, _
-                                  Optional ByVal Title As String = "XL Edge") As Boolean
+                                  Optional ByVal title As String = "XL Edge") As Boolean
 
     Set rg = Nothing
 
     ' TypeName rather than TypeOf: TypeOf raises on a Nothing selection, which
     ' is exactly the case being guarded against.
     If TypeName(Application.Selection) <> "Range" Then
-        MsgBox "Please select a range of cells first.", vbExclamation, Title
+        MsgBox "Please select a range of cells first.", vbExclamation, title
         Exit Function
     End If
 
@@ -45,7 +45,7 @@ Public Function GetSelectionRange(ByRef rg As Range, _
             MsgBox "Please select a single block of cells." & vbCrLf & vbCrLf & _
                    "This tool works out what to do from the shape of the selection, " & _
                    "so it cannot run across several separate blocks.", _
-                   vbExclamation, Title
+                   vbExclamation, title
             Set rg = Nothing
             Exit Function
         End If
@@ -72,14 +72,14 @@ End Function
 ' ----------------------------------------------------------------------------
 
 ' For anything that destroys data. Defaults to No, so a stray Enter is safe.
-Public Function ConfirmDestructive(ByVal msg As String, ByVal Title As String) As Boolean
-    ConfirmDestructive = (MsgBox(msg, vbYesNo Or vbExclamation Or vbDefaultButton2, Title) = vbYes)
+Public Function ConfirmDestructive(ByVal msg As String, ByVal title As String) As Boolean
+    ConfirmDestructive = (MsgBox(msg, vbYesNo Or vbExclamation Or vbDefaultButton2, title) = vbYes)
 End Function
 
 ' For anything reversible. Replaces the old "type Y or N" input boxes, which
 ' were case sensitive -- typing a lower case y silently did nothing.
-Public Function ConfirmProceed(ByVal msg As String, ByVal Title As String) As Boolean
-    ConfirmProceed = (MsgBox(msg, vbYesNo Or vbQuestion, Title) = vbYes)
+Public Function ConfirmProceed(ByVal msg As String, ByVal title As String) As Boolean
+    ConfirmProceed = (MsgBox(msg, vbYesNo Or vbQuestion, title) = vbYes)
 End Function
 
 ' ----------------------------------------------------------------------------
@@ -114,7 +114,7 @@ Public Sub ConvertFormulasToValues(ByVal rg As Range, _
     For Each ar In fx.Areas
         On Error Resume Next
         Err.Clear
-        ar.Value = ar.Value
+        ar.value = ar.value
         If Err.Number <> 0 Then
             areasFailed = areasFailed + 1
             Err.Clear
@@ -157,10 +157,10 @@ End Function
 ' until the day something in that call touches Err.
 '
 ' Does nothing when errNum is 0, so the same line serves the success path.
-Public Sub ReportError(ByVal errNum As Long, ByVal errTxt As String, ByVal Title As String)
+Public Sub ReportError(ByVal errNum As Long, ByVal errTxt As String, ByVal title As String)
     If errNum = 0 Then Exit Sub
-    MsgBox Title & " could not finish." & vbCrLf & vbCrLf & _
-           "Error " & errNum & ": " & errTxt, vbExclamation, Title
+    MsgBox title & " could not finish." & vbCrLf & vbCrLf & _
+           "Error " & errNum & ": " & errTxt, vbExclamation, title
 End Sub
 
 ' Trims a string the way the "Trim Spaces" button promises: leading and

@@ -80,23 +80,23 @@ Sub OpenVBAEditor2()
 'object model". Application.VBE does need it, and raises 1004 without it, so it
 'is only the fallback.
 
-    Dim ok As Boolean
+    Dim OK As Boolean
 
     On Error Resume Next
 
     Application.CommandBars.ExecuteMso "VisualBasic"
-    ok = (Err.Number = 0)
+    OK = (Err.Number = 0)
     Err.Clear
 
-    If Not ok Then
+    If Not OK Then
         Application.VBE.MainWindow.Visible = True
-        ok = (Err.Number = 0)
+        OK = (Err.Number = 0)
         Err.Clear
     End If
 
     On Error GoTo 0
 
-    If Not ok Then
+    If Not OK Then
         MsgBox "Excel would not open the VBA editor." & vbCrLf & vbCrLf & _
                "Tick File > Options > Trust Center > Trust Center Settings > " & _
                "Macro Settings > ""Trust access to the VBA project object model""," & _
@@ -256,7 +256,7 @@ End Sub
 Private Sub ApplyDataFieldFormat(ByVal pvtFld As PivotField)
 
     Dim cap As String
-    cap = pvtFld.Caption
+    cap = pvtFld.caption
 
     Select Case True
         Case InStr(1, cap, "Date", vbTextCompare) > 0
@@ -781,46 +781,46 @@ strLightShading = RGB(Red:=242, Green:=242, Blue:=242) 'Light Grey
             Case strHeading2
                 Selection.Interior.Color = strInputs
                 Selection.Font.Color = strAltText
-                Selection.Font.Bold = True
+                Selection.Font.bold = True
             Case strInputs
                 Selection.Interior.Color = strWorksheet
                 Selection.Font.Color = strAltText
-                Selection.Font.Bold = True
+                Selection.Font.bold = True
             Case strWorksheet
                 Selection.Interior.Color = strFormulas
                 Selection.Font.Color = strAltText
-                Selection.Font.Bold = True
+                Selection.Font.bold = True
             Case strFormulas
                 Selection.Interior.Color = strPartials
                 Selection.Font.Color = strAltText
-                Selection.Font.Bold = True
+                Selection.Font.bold = True
             Case strPartials
                 Selection.Interior.Color = strWorkbook
                 Selection.Font.Color = strAltText
-                Selection.Font.Bold = True
+                Selection.Font.bold = True
             Case strWorkbook
                 Selection.Interior.Color = strFileLinks
                 Selection.Font.Color = strAltText
-                Selection.Font.Bold = True
+                Selection.Font.bold = True
             Case strFileLinks
                 Selection.Interior.Color = strInvestigate
                 Selection.Font.Color = strFileLinks
             Case strInvestigate
                 Selection.Interior.Color = strLightShading
                 Selection.Font.Color = strFormulas
-                Selection.Font.Bold = True
+                Selection.Font.bold = True
             Case strLightShading
                 Selection.Interior.Color = strHeading
                 Selection.Font.Color = strAltText
-                Selection.Font.Bold = True
+                Selection.Font.bold = True
             Case strHeading
                 Selection.Interior.Color = strHeading2
                 Selection.Font.Color = strInputs
-                Selection.Font.Bold = True
+                Selection.Font.bold = True
             Case Else
                 Selection.Interior.Color = strHeading2
                 Selection.Font.Color = strInputs
-                Selection.Font.Bold = True
+                Selection.Font.bold = True
         End Select
     End With
 
@@ -843,7 +843,7 @@ fontchoice = "Calibri"
     'common choices to paste as desired: "Calibri", "Arial", "Aptos", "Open Sans", "Neue Haas Grotesk Text Pro", "Times New Roman", "Courier New"
 
     Selection.Borders.LineStyle = xlNone
-    Selection.Font.Bold = False
+    Selection.Font.bold = False
     Selection.Interior.Color = xlNone
     Selection.Font.Color = vbBlack
     'Selection.Font.Size = 10
@@ -1184,7 +1184,7 @@ End If
 
 MsgBox prompt:=msg, _
 Buttons:=vbInformation, _
-Title:="Formulas Report"
+title:="Formulas Report"
 
 End Sub
 

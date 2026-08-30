@@ -25,7 +25,7 @@ Private Type TAppState
     EnableEvents    As Boolean
     DisplayStatusBar As Boolean
     DisplayAlerts   As Boolean
-    Cursor          As XlMousePointer
+    cursor          As XlMousePointer
 End Type
 
 Private mSaved As TAppState
@@ -40,13 +40,13 @@ Public Sub FastModeOn()
             mSaved.EnableEvents = .EnableEvents
             mSaved.DisplayStatusBar = .DisplayStatusBar
             mSaved.DisplayAlerts = .DisplayAlerts
-            mSaved.Cursor = .Cursor
+            mSaved.cursor = .cursor
 
             .ScreenUpdating = False
             .Calculation = xlCalculationManual
             .EnableEvents = False
             .DisplayStatusBar = False
-            .Cursor = xlWait
+            .cursor = xlWait
         End With
     End If
     mDepth = mDepth + 1
@@ -65,7 +65,7 @@ Public Sub FastModeOff()
         .EnableEvents = mSaved.EnableEvents
         .DisplayStatusBar = mSaved.DisplayStatusBar
         .DisplayAlerts = mSaved.DisplayAlerts
-        .Cursor = mSaved.Cursor
+        .cursor = mSaved.cursor
     End With
 End Sub
 
@@ -79,7 +79,7 @@ Public Sub FastModeReset()
         .EnableEvents = True
         .DisplayStatusBar = True
         .DisplayAlerts = True
-        .Cursor = xlDefault
+        .cursor = xlDefault
     End With
 End Sub
 

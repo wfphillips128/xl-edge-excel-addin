@@ -35,7 +35,7 @@ End Sub
 
 ' Callable from the Immediate window or another macro:  modAbout.LaunchAbout
 Public Sub LaunchAbout()
-    On Error GoTo failed
+    On Error GoTo Failed
 
     ' No FastModeOn here. The dialog is pure UI -- it reads nothing from any
     ' worksheet, so there is nothing to speed up and nothing to protect.
@@ -46,7 +46,7 @@ Public Sub LaunchAbout()
     Set f = Nothing
     Exit Sub
 
-failed:
+Failed:
     ' The form is the nice presentation, not the only one. If it fails to build
     ' for any reason, the name and version still reach the user.
     MsgBox VersionLine() & vbCrLf & vbCrLf & _

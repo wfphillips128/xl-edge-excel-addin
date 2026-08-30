@@ -20,7 +20,7 @@ End Sub
 
 ' Callable from the Immediate window or another macro:  modSettingsUI.LaunchSettings
 Public Sub LaunchSettings()
-    On Error GoTo failed
+    On Error GoTo Failed
 
     If Not AddInStorage.StorageReady() Then
         MsgBox "XL Edge cannot find its reference sheet, so settings are not " & _
@@ -51,7 +51,7 @@ Public Sub LaunchSettings()
     End If
     Exit Sub
 
-failed:
+Failed:
     MsgBox "Could not open XL Edge settings." & vbCrLf & vbCrLf & _
            "Error " & Err.Number & ": " & Err.description, vbExclamation, "XL Edge Settings"
 End Sub

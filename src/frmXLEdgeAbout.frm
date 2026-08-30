@@ -1,11 +1,18 @@
+VERSION 5.00
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmXLEdgeAbout 
+   Caption         =   "UserForm1"
+   ClientHeight    =   3040
+   ClientLeft      =   110
+   ClientTop       =   450
+   ClientWidth     =   4580
+   OleObjectBlob   =   "frmXLEdgeAbout.frx":0000
+   StartUpPosition =   1  'CenterOwner
+End
 Attribute VB_Name = "frmXLEdgeAbout"
-Attribute VB_Base = "0{4B748D9A-AE97-4973-8C71-DA9CBA84BFAF}{B833D1E5-2C39-4F32-B185-9219797D4417}"
 Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Attribute VB_TemplateDerived = False
-Attribute VB_Customizable = False
 Option Explicit
 
 ' ----------------------------------------------------------------------------
@@ -16,9 +23,9 @@ Option Explicit
 '  with Controls.Add does not, unless it is assigned to a WithEvents variable.
 '  Only the button needs it -- labels and the licence box are never clicked.
 ' ----------------------------------------------------------------------------
-Private lblTitle     As MSForms.Label
-Private lblVersion   As MSForms.Label
-Private lblLicHdr    As MSForms.Label
+Private lblTitle     As MSForms.label
+Private lblVersion   As MSForms.label
+Private lblLicHdr    As MSForms.label
 Private txtLicense   As MSForms.TextBox
 
 Private WithEvents cmdClose As MSForms.CommandButton
@@ -40,43 +47,43 @@ Private Sub UserForm_Initialize()
 End Sub
 
 Private Sub BuildLayout()
-    Me.Caption = "About " & XLEDGE_NAME
-    Me.Width = 436
+    Me.caption = "About " & XLEDGE_NAME
+    Me.width = 436
     Me.Height = 386
 
     Dim c As Object
 
     Set lblTitle = Me.Controls.Add("Forms.Label.1", "lblTitle", True)
     With lblTitle
-        .Left = MARGIN_L: .Top = 12: .Width = BODY_W: .Height = 22
+        .Left = MARGIN_L: .Top = 12: .width = BODY_W: .Height = 22
         .Font.Size = 14
-        .Font.Bold = True
+        .Font.bold = True
     End With
 
     Set lblVersion = Me.Controls.Add("Forms.Label.1", "lblVersion", True)
     With lblVersion
-        .Left = MARGIN_L: .Top = 36: .Width = BODY_W: .Height = 14
+        .Left = MARGIN_L: .Top = 36: .width = BODY_W: .Height = 14
     End With
 
     ' A 1-point-tall label with a fill is the cheapest horizontal rule MSForms
     ' offers -- there is no line control on a UserForm.
     Set c = Me.Controls.Add("Forms.Label.1", "lblRule", True)
     With c
-        .Caption = ""
-        .Left = MARGIN_L: .Top = 58: .Width = BODY_W: .Height = 1
+        .caption = ""
+        .Left = MARGIN_L: .Top = 58: .width = BODY_W: .Height = 1
         .BackColor = &H80000010                ' system button-shadow grey
     End With
 
     Set lblLicHdr = Me.Controls.Add("Forms.Label.1", "lblLicHdr", True)
     With lblLicHdr
-        .Caption = "License"
-        .Left = MARGIN_L: .Top = 68: .Width = BODY_W: .Height = 14
-        .Font.Bold = True
+        .caption = "License"
+        .Left = MARGIN_L: .Top = 68: .width = BODY_W: .Height = 14
+        .Font.bold = True
     End With
 
     Set txtLicense = Me.Controls.Add("Forms.TextBox.1", "txtLicense", True)
     With txtLicense
-        .Left = MARGIN_L: .Top = 86: .Width = BODY_W: .Height = 224
+        .Left = MARGIN_L: .Top = 86: .width = BODY_W: .Height = 224
         .Multiline = True
         .WordWrap = True
         .ScrollBars = fmScrollBarsVertical
@@ -89,8 +96,8 @@ Private Sub BuildLayout()
 
     Set cmdClose = Me.Controls.Add("Forms.CommandButton.1", "cmdClose", True)
     With cmdClose
-        .Caption = "Close"
-        .Left = MARGIN_L + BODY_W - BTN_W: .Top = 322: .Width = BTN_W: .Height = BTN_H
+        .caption = "Close"
+        .Left = MARGIN_L + BODY_W - BTN_W: .Top = 322: .width = BTN_W: .Height = BTN_H
         .Default = True                        ' Enter closes
         .Cancel = True                         ' Esc closes
     End With
@@ -98,8 +105,8 @@ End Sub
 
 ' Every string on the form comes from modAbout -- see the header note.
 Private Sub FillText()
-    lblTitle.Caption = XLEDGE_NAME
-    lblVersion.Caption = modAbout.VersionString()
+    lblTitle.caption = XLEDGE_NAME
+    lblVersion.caption = modAbout.VersionString()
     txtLicense.text = modAbout.LicenseText()
 
     ' Put the caret at the top. Assigning .Text leaves the selection at the end

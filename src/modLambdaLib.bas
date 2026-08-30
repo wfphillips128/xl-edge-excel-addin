@@ -92,7 +92,7 @@ Public Function EntriesFromXlsxFile(ByVal path As String) As Collection
     Set EntriesFromXlsxFile = out
 
     Dim wb As Workbook
-    On Error GoTo done
+    On Error GoTo Done
 
     ' ReadOnly + UpdateLinks:=0 so opening someone's backup can never prompt,
     ' recalculate, or modify the file being read.
@@ -101,18 +101,18 @@ Public Function EntriesFromXlsxFile(ByVal path As String) As Collection
     Dim ws As Worksheet, lo As ListObject
     For Each ws In wb.Worksheets
         For Each lo In ws.ListObjects
-            If ReadEntriesFromHeaderRow(lo.HeaderRowRange, out) Then GoTo done
+            If ReadEntriesFromHeaderRow(lo.HeaderRowRange, out) Then GoTo Done
         Next lo
     Next ws
 
     ' No table matched -- fall back to treating row 1 of each sheet as headers.
     For Each ws In wb.Worksheets
         If ws.UsedRange.rows.Count > 1 Then
-            If ReadEntriesFromHeaderRow(ws.rows(1), out) Then GoTo done
+            If ReadEntriesFromHeaderRow(ws.rows(1), out) Then GoTo Done
         End If
     Next ws
 
-done:
+Done:
     Dim savedErr As Long, savedDesc As String
     savedErr = Err.Number
     savedDesc = Err.description
@@ -134,7 +134,7 @@ Private Function ReadEntriesFromHeaderRow(ByVal headerRow As Range, _
     Dim c As Range, h As String
 
     For Each c In headerRow.Cells
-        h = LCase$(TrimWS(CStr(c.Value & "")))
+        h = LCase$(TrimWS(CStr(c.value & "")))
         Select Case h
             Case "function", "name":        If ixName = 0 Then ixName = c.Column
             Case "formula", "code":         If ixCode = 0 Then ixCode = c.Column
@@ -155,9 +155,9 @@ Private Function ReadEntriesFromHeaderRow(ByVal headerRow As Range, _
 
     Dim nm As String, fx As String, ds As String
     For r = firstRow To lastRow
-        nm = TrimWS(CStr(ws.Cells(r, ixName).Value & ""))
-        fx = TrimWS(CStr(ws.Cells(r, ixCode).Value & ""))
-        If ixDesc > 0 Then ds = CStr(ws.Cells(r, ixDesc).Value & "") Else ds = ""
+        nm = TrimWS(CStr(ws.Cells(r, ixName).value & ""))
+        fx = TrimWS(CStr(ws.Cells(r, ixCode).value & ""))
+        If ixDesc > 0 Then ds = CStr(ws.Cells(r, ixDesc).value & "") Else ds = ""
 
         If Len(nm) > 0 And Len(fx) > 0 Then
             ' Tolerate a formula stored without its leading "=".
@@ -264,14 +264,14 @@ End Function
 ' expressions as defaults, and an omitted object parameter is Nothing anyway.)
 Public Function AddEntriesToWorkbook(ByVal entries As Collection, _
                                      ByVal wb As Workbook, _
-                                     Optional ByVal failed As Collection, _
+                                     Optional ByVal Failed As Collection, _
                                      Optional ByVal wrapped As Collection) As Long
     If wb Is Nothing Then Exit Function
 
-    Dim done As Object, reasons As Object
-    Set done = CreateObject("Scripting.Dictionary")
+    Dim Done As Object, reasons As Object
+    Set Done = CreateObject("Scripting.Dictionary")
     Set reasons = CreateObject("Scripting.Dictionary")
-    done.CompareMode = 1                          ' 1 = vbTextCompare
+    Done.CompareMode = 1                          ' 1 = vbTextCompare
     reasons.CompareMode = 1
 
     Dim addedThisPass As Long, guard As Long, e As Variant, why As String
@@ -281,11 +281,11 @@ Public Function AddEntriesToWorkbook(ByVal entries As Collection, _
         guard = guard + 1
 
         For Each e In entries
-            If Not done.Exists(CStr(e(0))) Then
+            If Not Done.Exists(CStr(e(0))) Then
                 why = ""
                 wasWrapped = False
                 If CreateLambdaName(wb, CStr(e(0)), CStr(e(1)), CStr(e(2)), why, wasWrapped) Then
-                    done(CStr(e(0))) = True
+                    Done(CStr(e(0))) = True
                     addedThisPass = addedThisPass + 1
                     If wasWrapped And Not wrapped Is Nothing Then wrapped.Add CStr(e(0))
                 Else
@@ -293,23 +293,23 @@ Public Function AddEntriesToWorkbook(ByVal entries As Collection, _
                 End If
             End If
         Next e
-    Loop While addedThisPass > 0 And done.Count < entries.Count And guard < 20
+    Loop While addedThisPass > 0 And Done.Count < entries.Count And guard < 20
 
     ' Report WHY, not just WHICH. "FILL (error 1004 - ...)" points at the cause;
     ' a bare list of names sends you back to guessing.
-    If Not failed Is Nothing Then
+    If Not Failed Is Nothing Then
         For Each e In entries
-            If Not done.Exists(CStr(e(0))) Then
+            If Not Done.Exists(CStr(e(0))) Then
                 If Len(reasons(CStr(e(0)))) > 0 Then
-                    failed.Add CStr(e(0)) & " (" & reasons(CStr(e(0))) & ")"
+                    Failed.Add CStr(e(0)) & " (" & reasons(CStr(e(0))) & ")"
                 Else
-                    failed.Add CStr(e(0))
+                    Failed.Add CStr(e(0))
                 End If
             End If
         Next e
     End If
 
-    AddEntriesToWorkbook = done.Count
+    AddEntriesToWorkbook = Done.Count
 End Function
 
 ' Create or replace one defined name holding a LAMBDA. Returns True on success;
@@ -595,9 +595,9 @@ Public Sub ExportLibraryToXlsx(ByVal path As String)
     Set ws = wb.Worksheets(1)
     ws.name = "LAMBDA library"
 
-    ws.Range("A1").Value = "Function"
-    ws.Range("B1").Value = "Formula"
-    ws.Range("C1").Value = "Description"
+    ws.Range("A1").value = "Function"
+    ws.Range("B1").value = "Formula"
+    ws.Range("C1").value = "Description"
 
     Dim n As Long
     n = entries.Count
@@ -616,7 +616,7 @@ Public Sub ExportLibraryToXlsx(ByVal path As String)
         ' Text format BEFORE the values, or Excel tries to evaluate "=LAMBDA(..."
         ' as a formula on the way in and the export is full of #NAME? errors.
         ws.Range("B2").Resize(n, 1).NumberFormat = "@"
-        ws.Range("A2").Resize(n, 3).Value = buf
+        ws.Range("A2").Resize(n, 3).value = buf
     End If
 
     Dim lo As ListObject
@@ -627,7 +627,7 @@ Public Sub ExportLibraryToXlsx(ByVal path As String)
     ws.Columns("B").ColumnWidth = 70
     ws.Columns("C").ColumnWidth = 50
     ws.Range("B:C").WrapText = True
-    ws.rows(1).Font.Bold = True
+    ws.rows(1).Font.bold = True
 
     ' 51 = xlOpenXMLWorkbook (.xlsx)
     wb.SaveAs fileName:=path, FileFormat:=51

@@ -59,6 +59,25 @@ Under the hood every operation is normalised to a single shape —
 a *sink*. Adding a new source later (a different site, a database) is one
 function, not a new menu.
 
+### Panel Charts
+
+**Tools → Create Panel Chart** builds a grid of small charts — one chart per
+region, product or partner, all sharing a single scale — as **one native chart
+object**, not R × C copies whose axes drift apart the moment the data changes.
+
+Select a block of data first to build from it, or run it with nothing selected
+to get a placeholder block to paste your own numbers over. It lands on its own
+new sheet, with print setup already fixed to one landscape page.
+
+The whole grid runs two coordinate systems through one plot area: the primary
+axes carry the data, with every panel's periods laid end to end; the secondary
+axes carry the furniture — dividers, band rules, baselines, panel titles and
+the tick labels that stand in for the hidden value axis. Every band is a
+miniature copy of the same scale, which is what makes the panels comparable.
+
+Line and bar orientations, and a self-check (`PanelSelfCheck`) that exercises
+the geometry with every workbook closed.
+
 ### Productivity Tools
 
 Macros refactored to modern VBA standards for speed and reliability, grouped on
@@ -74,7 +93,8 @@ the ribbon:
   parentheses / sign-flip, convert to absolute or relative references, change
   `SUM` to `SUBTOTAL`, list a formula as text, trim/prefix/suffix text, scale a
   range by 1000 or by a selected value, change case, and more.
-- **Tools** — speak cell contents, toggle gridlines, unmerge & center across,
+- **Tools** — **create a panel chart** (above), speak cell contents, toggle
+  gridlines, unmerge & center across,
   copy sheets to a new file without formulas, remove formulas from a
   selection / sheet / workbook, shrink the file, and quick jumps to the VBA
   editor, macro dialog and add-in location.
@@ -89,7 +109,7 @@ defaults are yours to change without touching code.
 
 ## Source
 
-All 13 VBA modules are exported to [`src/`](src/) so the code is browsable
+All 19 VBA modules are exported to [`src/`](src/) so the code is browsable
 without opening Excel. The ribbon definition is in
 [`customUI/customUI14.xml`](customUI/customUI14.xml).
 
