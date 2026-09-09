@@ -92,7 +92,7 @@ Public Function EntriesFromXlsxFile(ByVal path As String) As Collection
     Set EntriesFromXlsxFile = out
 
     Dim wb As Workbook
-    On Error GoTo Done
+    On Error GoTo done
 
     ' ReadOnly + UpdateLinks:=0 so opening someone's backup can never prompt,
     ' recalculate, or modify the file being read.
@@ -101,18 +101,18 @@ Public Function EntriesFromXlsxFile(ByVal path As String) As Collection
     Dim ws As Worksheet, lo As ListObject
     For Each ws In wb.Worksheets
         For Each lo In ws.ListObjects
-            If ReadEntriesFromHeaderRow(lo.HeaderRowRange, out) Then GoTo Done
+            If ReadEntriesFromHeaderRow(lo.HeaderRowRange, out) Then GoTo done
         Next lo
     Next ws
 
     ' No table matched -- fall back to treating row 1 of each sheet as headers.
     For Each ws In wb.Worksheets
         If ws.UsedRange.rows.Count > 1 Then
-            If ReadEntriesFromHeaderRow(ws.rows(1), out) Then GoTo Done
+            If ReadEntriesFromHeaderRow(ws.rows(1), out) Then GoTo done
         End If
     Next ws
 
-Done:
+done:
     Dim savedErr As Long, savedDesc As String
     savedErr = Err.Number
     savedDesc = Err.description
@@ -191,7 +191,10 @@ Public Function EntriesFromWorkbookNames(ByVal wb As Workbook, _
         cmt = nm.comment
         On Error GoTo 0
 
-        If Left$(refers, 8) = "=LAMBDA(" Then
+        ' vbTextCompare, to agree with the test AddEntriesToWorkbook already uses.
+        ' A plain = here is case-sensitive (no Option Compare Text in this module),
+        ' so a name stored as "=lambda(" was invisible to the dropdown.
+        If StrComp(Left$(refers, 8), "=LAMBDA(", vbTextCompare) = 0 Then
             If InStr(nm.name, "!") = 0 Then
                 If Len(onlyName) = 0 Then
                     out.Add Array(nm.name, refers, cmt)
@@ -264,14 +267,14 @@ End Function
 ' expressions as defaults, and an omitted object parameter is Nothing anyway.)
 Public Function AddEntriesToWorkbook(ByVal entries As Collection, _
                                      ByVal wb As Workbook, _
-                                     Optional ByVal Failed As Collection, _
+                                     Optional ByVal failed As Collection, _
                                      Optional ByVal wrapped As Collection) As Long
     If wb Is Nothing Then Exit Function
 
-    Dim Done As Object, reasons As Object
-    Set Done = CreateObject("Scripting.Dictionary")
+    Dim done As Object, reasons As Object
+    Set done = CreateObject("Scripting.Dictionary")
     Set reasons = CreateObject("Scripting.Dictionary")
-    Done.CompareMode = 1                          ' 1 = vbTextCompare
+    done.CompareMode = 1                          ' 1 = vbTextCompare
     reasons.CompareMode = 1
 
     Dim addedThisPass As Long, guard As Long, e As Variant, why As String
@@ -281,11 +284,11 @@ Public Function AddEntriesToWorkbook(ByVal entries As Collection, _
         guard = guard + 1
 
         For Each e In entries
-            If Not Done.Exists(CStr(e(0))) Then
+            If Not done.Exists(CStr(e(0))) Then
                 why = ""
                 wasWrapped = False
                 If CreateLambdaName(wb, CStr(e(0)), CStr(e(1)), CStr(e(2)), why, wasWrapped) Then
-                    Done(CStr(e(0))) = True
+                    done(CStr(e(0))) = True
                     addedThisPass = addedThisPass + 1
                     If wasWrapped And Not wrapped Is Nothing Then wrapped.Add CStr(e(0))
                 Else
@@ -293,23 +296,23 @@ Public Function AddEntriesToWorkbook(ByVal entries As Collection, _
                 End If
             End If
         Next e
-    Loop While addedThisPass > 0 And Done.Count < entries.Count And guard < 20
+    Loop While addedThisPass > 0 And done.Count < entries.Count And guard < 20
 
     ' Report WHY, not just WHICH. "FILL (error 1004 - ...)" points at the cause;
     ' a bare list of names sends you back to guessing.
-    If Not Failed Is Nothing Then
+    If Not failed Is Nothing Then
         For Each e In entries
-            If Not Done.Exists(CStr(e(0))) Then
+            If Not done.Exists(CStr(e(0))) Then
                 If Len(reasons(CStr(e(0)))) > 0 Then
-                    Failed.Add CStr(e(0)) & " (" & reasons(CStr(e(0))) & ")"
+                    failed.Add CStr(e(0)) & " (" & reasons(CStr(e(0))) & ")"
                 Else
-                    Failed.Add CStr(e(0))
+                    failed.Add CStr(e(0))
                 End If
             End If
         Next e
     End If
 
-    AddEntriesToWorkbook = Done.Count
+    AddEntriesToWorkbook = done.Count
 End Function
 
 ' Create or replace one defined name holding a LAMBDA. Returns True on success;

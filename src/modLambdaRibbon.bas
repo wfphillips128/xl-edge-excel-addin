@@ -44,10 +44,16 @@ Private mAFSelectedName As String        ' highlighted item, active-file dropdow
 Private mLibEntries As Collection
 Private mAFEntries  As Collection
 
-' Which workbook mAFEntries was built from. The active-file list is only valid
-' for one workbook, so the cache is keyed to it and rebuilds itself the moment a
-' callback runs against a different one. Without this the list kept showing the
-' functions from whichever workbook happened to be in front when Excel started.
+' Which workbook the cached AF list AND mAFSelectedName belong to. The
+' active-file list is only valid for one workbook, so both are keyed to it and
+' both are discarded the moment a callback runs against a different one. Without
+' this the list kept showing the functions from whichever workbook happened to be
+' in front when Excel started.
+'
+' ONE WRITER ONLY: AFEntries, at the point it rebuilds. Anything that wants a
+' rebuild sets mAFEntries = Nothing and leaves this alone. Blanking it to force a
+' rebuild makes the rebuild look like a workbook change, which wipes the user's
+' selection -- that was the "AF dropdown snaps back to the first item" bug.
 Private mAFSource As String
 
 
@@ -72,7 +78,10 @@ End Sub
 Public Sub Lambda_Update()
     Set mLibEntries = Nothing
     Set mAFEntries = Nothing
-    mAFSource = vbNullString
+    ' mAFSource is deliberately NOT blanked. Setting mAFEntries to Nothing is
+    ' already enough to force a rebuild -- see AFEntries. mAFSource says which
+    ' workbook the selection belongs to, and blanking it made every rebuild look
+    ' like a workbook change.
 
     If gRibbon Is Nothing Then Exit Sub
 
@@ -100,8 +109,12 @@ End Sub
 Public Sub Lambda_ActiveFileChanged()
     On Error Resume Next
     Set mAFEntries = Nothing
-    mAFSource = vbNullString
-    mAFSelectedName = vbNullString
+    ' Neither mAFSource nor mAFSelectedName is cleared here. This runs from
+    ' App_WindowActivate / App_WorkbookActivate, which also fire for the workbook
+    ' that is ALREADY in front -- alt-tabbing back into Excel is enough -- so
+    ' clearing here threw away a selection that was still perfectly valid.
+    ' AFEntries clears it instead, and only when the workbook key really changed.
+    ' That is now the single place the AF selection is ever cleared.
     If gRibbon Is Nothing Then Exit Sub
     gRibbon.InvalidateControl "LambdaFunctions"
 End Sub
@@ -151,7 +164,9 @@ Private Function AFEntries() As Collection
         Exit Function
     End If
 
-    ' Different workbook: the previous selection is meaningless now.
+    ' Different workbook: the previous selection is meaningless now. This is the
+    ' ONLY place the AF selection is cleared. key is "" when no workbook is open,
+    ' so closing the last one clears it too.
     If key <> mAFSource Then mAFSelectedName = ""
 
     Dim found As Collection
@@ -248,7 +263,10 @@ Private Function EntryAt(ByVal entries As Collection, ByVal zeroBasedIndex As Lo
     EntryAt = entries(zeroBasedIndex + 1)
 End Function
 
-' 0-based position of name in entries, or 0 if absent.
+' 0-based position of name in entries, or 0 if absent. CALLERS MUST TREAT THE
+' RESULT AS "the item to highlight", not as "found": 0 means both "first item"
+' and "no match", and getSelectedItemIndex has to return a real index anyway --
+' -1 leaves the dropdown blank. Both callers reconcile by adopting EntryAt(pos).
 Private Function IndexOfName(ByVal entries As Collection, ByVal name As String) As Long
     Dim i As Long
     For i = 1 To entries.Count
@@ -379,7 +397,16 @@ Public Sub LambdaAFAction(control As IRibbonControl, id As String, index As Inte
     Dim e As Variant
     e = EntryAt(AFEntries(), CLng(index))
     If IsEmpty(e) Then mAFSelectedName = "" Else mAFSelectedName = CStr(e(0))
-    Lambda_Update
+    ' No Lambda_Update here, and that is NOT an oversight -- note that
+    ' LambdaListAction above does call it. Nothing on the ribbon is derived from
+    ' mAFSelectedName: this dropdown's screentip and supertip are static text in
+    ' the XML, and Excel is already showing the item the user just clicked. The
+    ' library dropdown is different, because its getScreentip / getSupertip read
+    ' mSelectedName and have to be re-asked.
+    '
+    ' Calling Lambda_Update here was pure cost: it also invalidated LambdaSearch,
+    ' which re-wrote the filter box mid-interaction, and threw away the library
+    ' cache that had nothing to do with this click.
 End Sub
 
 
@@ -395,7 +422,7 @@ Public Sub LambdaInjectSelected(control As IRibbonControl)
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromLibrary(mSelectedName)
     If entries.Count = 0 Then
-        warn "'" & mSelectedName & "' is no longer in the library."
+        Warn "'" & mSelectedName & "' is no longer in the library."
         Lambda_Update
         Exit Sub
     End If
@@ -413,7 +440,7 @@ Public Sub LambdaInjectAll(control As IRibbonControl)
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromLibrary()
     If entries.Count = 0 Then
-        warn "The LAMBDA library is empty."
+        Warn "The LAMBDA library is empty."
         Exit Sub
     End If
 
@@ -442,7 +469,7 @@ Public Sub LambdaInjectFromGist(control As IRibbonControl)
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromGistUrl(url)
     If entries.Count = 0 Then
-        warn "No LAMBDA / named-formula definitions found at that URL." & vbCrLf & _
+        Warn "No LAMBDA / named-formula definitions found at that URL." & vbCrLf & _
              "Confirm it is a single-file Gist in the Advanced Formula Environment format."
         Exit Sub
     End If
@@ -467,13 +494,13 @@ End Sub
 ' state, so bailing out with EnableEvents still False would leave events dead
 ' for every open workbook until Excel restarts.
 Private Sub InjectAndReport(ByVal entries As Collection, ByVal wb As Workbook)
-    Dim Failed As New Collection
+    Dim failed As New Collection
     Dim wrapped As New Collection
     Dim added As Long
 
     On Error GoTo CleanExit
     AppStateManager.FastModeOn
-    added = modLambdaLib.AddEntriesToWorkbook(entries, wb, Failed, wrapped)
+    added = modLambdaLib.AddEntriesToWorkbook(entries, wb, failed, wrapped)
 
 CleanExit:
     AppStateManager.FastModeOff
@@ -493,8 +520,8 @@ CleanExit:
               "Call them with brackets - NAME() rather than NAME:" & NameList(wrapped)
     End If
 
-    If Failed.Count > 0 Then msg = msg & vbCrLf & vbCrLf & _
-                                   "Skipped (invalid name or conflict):" & NameList(Failed)
+    If failed.Count > 0 Then msg = msg & vbCrLf & vbCrLf & _
+                                   "Skipped (invalid name or conflict):" & NameList(failed)
 
     MsgBox msg, vbInformation, DIALOG_TITLE
 End Sub
@@ -508,15 +535,12 @@ Public Sub LambdaImportSelectedAF(control As IRibbonControl)
     On Error GoTo Oops
     If Not HaveWorkbook() Then Exit Sub
 
-    If Len(mAFSelectedName) = 0 Then
-        warn "Select a LAMBDA from the 'Active File (AF) LAMBDAs' list first."
-        Exit Sub
-    End If
+    If Not HaveAFSelection() Then Exit Sub
 
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromWorkbookNames(ActiveWorkbook, mAFSelectedName)
     If entries.Count = 0 Then
-        warn "'" & mAFSelectedName & "' is no longer defined in '" & ActiveWorkbook.name & "'."
+        Warn "'" & mAFSelectedName & "' is no longer defined in '" & ActiveWorkbook.name & "'."
         Lambda_Update
         Exit Sub
     End If
@@ -534,7 +558,7 @@ Public Sub LambdaImportAllAF(control As IRibbonControl)
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromWorkbookNames(ActiveWorkbook)
     If entries.Count = 0 Then
-        warn "'" & ActiveWorkbook.name & "' has no workbook-scoped LAMBDA functions."
+        Warn "'" & ActiveWorkbook.name & "' has no workbook-scoped LAMBDA functions."
         Exit Sub
     End If
 
@@ -561,7 +585,7 @@ Public Sub LambdaImportFromGist(control As IRibbonControl)
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromGistUrl(url)
     If entries.Count = 0 Then
-        warn "No LAMBDA / named-formula definitions found at that URL."
+        Warn "No LAMBDA / named-formula definitions found at that URL."
         Exit Sub
     End If
     If Len(moduleName) > 0 Then Set entries = modLambdaLib.ApplyModuleNamespace(entries, moduleName)
@@ -578,18 +602,18 @@ End Sub
 ' Shared tail of every "into the library" action.
 Private Sub StoreAndReport(ByVal entries As Collection)
     Dim added As Long, updated As Long
-    Dim OK As Boolean
+    Dim ok As Boolean
 
     On Error GoTo CleanExit
     AppStateManager.FastModeOn
-    OK = modLambdaLib.AddEntriesToLibrary(entries, added, updated)
+    ok = modLambdaLib.AddEntriesToLibrary(entries, added, updated)
 
 CleanExit:
     AppStateManager.FastModeOff
     If Err.Number <> 0 Then Err.Raise Err.Number, "StoreAndReport", Err.description
 
-    If Not OK Then
-        warn "The library could not be updated." & vbCrLf & vbCrLf & AddInStorage.LastError
+    If Not ok Then
+        Warn "The library could not be updated." & vbCrLf & vbCrLf & AddInStorage.LastError
         Exit Sub
     End If
 
@@ -619,9 +643,9 @@ Public Sub LambdaRename(control As IRibbonControl)
         If cancelled Then Exit Sub
 
         If Len(newName) = 0 Then
-            warn "An empty string is not a valid name."
+            Warn "An empty string is not a valid name."
         ElseIf Not modLambdaLib.IsValidName(newName) Then
-            warn "'" & newName & "' is not a valid function name." & vbCrLf & vbCrLf & _
+            Warn "'" & newName & "' is not a valid function name." & vbCrLf & vbCrLf & _
                  "Start with a letter or underscore, then letters, digits, " & _
                  "underscores or dots. No spaces."
         Else
@@ -630,7 +654,7 @@ Public Sub LambdaRename(control As IRibbonControl)
     Loop
 
     If Not AddInStorage.RenameLambda(mSelectedName, newName) Then
-        warn AddInStorage.LastError
+        Warn AddInStorage.LastError
         Exit Sub
     End If
 
@@ -654,7 +678,7 @@ Public Sub LambdaDescribe(control As IRibbonControl)
     If cancelled Then Exit Sub
 
     If Not AddInStorage.SetLambdaDescription(mSelectedName, answer) Then
-        warn AddInStorage.LastError
+        Warn AddInStorage.LastError
         Exit Sub
     End If
 
@@ -674,7 +698,7 @@ Public Sub LambdaDelete(control As IRibbonControl)
               vbExclamation + vbYesNo + vbDefaultButton2, DIALOG_TITLE) <> vbYes Then Exit Sub
 
     If Not AddInStorage.DeleteLambda(mSelectedName) Then
-        warn AddInStorage.LastError
+        Warn AddInStorage.LastError
         Exit Sub
     End If
 
@@ -728,7 +752,7 @@ Public Sub LambdaImportXlsx(control As IRibbonControl)
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromXlsxFile(CStr(path))
     If entries.Count = 0 Then
-        warn "No functions found in that file." & vbCrLf & vbCrLf & _
+        Warn "No functions found in that file." & vbCrLf & vbCrLf & _
              "It needs a 'Function' column and a 'Formula' column, with a " & _
              "'Description' column optional."
         Exit Sub
@@ -774,7 +798,7 @@ Public Sub LambdaImportText(control As IRibbonControl)
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromTextFile(CStr(path))
     If entries.Count = 0 Then
-        warn "No LAMBDA definitions found in that file." & vbCrLf & vbCrLf & _
+        Warn "No LAMBDA definitions found in that file." & vbCrLf & vbCrLf & _
              "Expected Advanced Formula Environment format: NAME = LAMBDA(...);"
         Exit Sub
     End If
@@ -842,7 +866,7 @@ Private Function AskModuleName(ByRef cancelled As Boolean) As String
     m = Trim$(answer)
     If Len(m) > 0 Then
         If Not modLambdaLib.IsValidName(m) Then
-            warn "'" & m & "' is not a valid module name."
+            Warn "'" & m & "' is not a valid module name."
             cancelled = True
             Exit Function
         End If
@@ -853,7 +877,7 @@ End Function
 
 Private Function HaveWorkbook() As Boolean
     If Application.Workbooks.Count = 0 Then
-        warn "Open a workbook first - there is nothing to act on."
+        Warn "Open a workbook first - there is nothing to act on."
         Exit Function
     End If
     HaveWorkbook = True
@@ -861,15 +885,26 @@ End Function
 
 Private Function HaveSelection() As Boolean
     If Len(mSelectedName) = 0 Or mSelectedName = NONE_ITEM Then
-        warn "Select a function from the 'LAMBDA Library functions' list first."
+        Warn "Select a function from the 'LAMBDA Library functions' list first."
         Exit Function
     End If
     HaveSelection = True
 End Function
 
+' The AF mirror of HaveSelection. NONE_ITEM matters here for the same reason it
+' does there: with no LAMBDAs in the workbook the dropdown shows "[None]", and
+' that is a label, never a function to act on.
+Private Function HaveAFSelection() As Boolean
+    If Len(mAFSelectedName) = 0 Or mAFSelectedName = NONE_ITEM Then
+        Warn "Select a LAMBDA from the 'Active File (AF) LAMBDAs' list first."
+        Exit Function
+    End If
+    HaveAFSelection = True
+End Function
+
 Private Function HaveLibrary() As Boolean
     If AddInStorage.LambdaCount() = 0 Then
-        warn "The LAMBDA library is empty - there is nothing to export."
+        Warn "The LAMBDA library is empty - there is nothing to export."
         Exit Function
     End If
     HaveLibrary = True
@@ -902,7 +937,7 @@ Private Function NameList(ByVal names As Collection) As String
     NameList = s
 End Function
 
-Private Sub warn(ByVal message As String)
+Private Sub Warn(ByVal message As String)
     MsgBox message, vbExclamation, DIALOG_TITLE
 End Sub
 

@@ -98,7 +98,7 @@ Public Sub LaunchPanelChart()
 
     DetectPanelSource src
 
-    On Error GoTo Failed
+    On Error GoTo failed
     Set f = New frmPanelChart
     f.Preload src.note, src.hasBlock, src.periodsGuess, src.elemGuess, _
               src.nPanels, src.confident, _
@@ -111,7 +111,7 @@ Public Sub LaunchPanelChart()
     ' state.
     f.Show vbModal
 
-    If Not f.OK Then GoTo Done
+    If Not f.ok Then GoTo done
     ReadFormInto f, sp, st, src
 
     On Error GoTo CleanUp
@@ -131,13 +131,13 @@ CleanUp:
                problem, vbExclamation, TITLE_TXT
     End If
 
-Done:
+done:
     On Error Resume Next
     Unload f
     Set f = Nothing
     Exit Sub
 
-Failed:
+failed:
     MsgBox "Could not open the panel chart dialog." & vbCrLf & vbCrLf & _
            Err.description, vbExclamation, TITLE_TXT
 End Sub

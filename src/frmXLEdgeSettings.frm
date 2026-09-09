@@ -565,7 +565,7 @@ End Function
 ' ============================================================================
 
 Private Sub cmdSave_Click()
-    On Error GoTo Failed
+    On Error GoTo failed
 
     If Not AddInStorage.StorageReady() Then
         MsgBox "The add-in's reference sheet could not be found, so settings " & _
@@ -615,7 +615,7 @@ Private Sub cmdSave_Click()
     Me.Hide                     ' Hide, not Unload -- see the Saved property below
     Exit Sub
 
-Failed:
+failed:
     MsgBox "Could not save settings." & vbCrLf & vbCrLf & _
            "Error " & Err.Number & ": " & Err.description, vbExclamation, "XL Edge Settings"
 End Sub

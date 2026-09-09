@@ -80,23 +80,23 @@ Sub OpenVBAEditor2()
 'object model". Application.VBE does need it, and raises 1004 without it, so it
 'is only the fallback.
 
-    Dim OK As Boolean
+    Dim ok As Boolean
 
     On Error Resume Next
 
     Application.CommandBars.ExecuteMso "VisualBasic"
-    OK = (Err.Number = 0)
+    ok = (Err.Number = 0)
     Err.Clear
 
-    If Not OK Then
+    If Not ok Then
         Application.VBE.MainWindow.Visible = True
-        OK = (Err.Number = 0)
+        ok = (Err.Number = 0)
         Err.Clear
     End If
 
     On Error GoTo 0
 
-    If Not OK Then
+    If Not ok Then
         MsgBox "Excel would not open the VBA editor." & vbCrLf & vbCrLf & _
                "Tick File > Options > Trust Center > Trust Center Settings > " & _
                "Macro Settings > ""Trust access to the VBA project object model""," & _

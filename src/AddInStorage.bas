@@ -232,11 +232,11 @@ Private Sub LoadCache()
     Set mCache = CreateObject("Scripting.Dictionary")
     mCache.CompareMode = 1                          ' 1 = vbTextCompare, case-insensitive keys
 
-    On Error GoTo Done                              ' any failure -> empty cache -> defaults
+    On Error GoTo done                              ' any failure -> empty cache -> defaults
 
     Dim lo As ListObject
     Set lo = ConstantsTable()
-    If lo.DataBodyRange Is Nothing Then GoTo Done   ' table exists but has no rows
+    If lo.DataBodyRange Is Nothing Then GoTo done   ' table exists but has no rows
 
     ' ONE read of each column instead of a COM call per cell.
     '
@@ -252,7 +252,7 @@ Private Sub LoadCache()
     If Not IsArray(keys) Then                       ' single-row table -> scalars
         k = Trim$(CStr(keys))
         If Len(k) > 0 Then mCache(k) = vals
-        GoTo Done
+        GoTo done
     End If
 
     n = UBound(keys, 1)
@@ -261,7 +261,7 @@ Private Sub LoadCache()
         If Len(k) > 0 Then mCache(k) = vals(i, 1)   ' last duplicate key wins
     Next i
 
-Done:
+done:
     On Error GoTo 0
 End Sub
 
@@ -423,7 +423,7 @@ End Property
 ' the key isn't in the table -- the caller decides whether that's an error.
 ' Does NOT save; batch your writes then call SaveStorage once.
 Public Function SetConstant(ByVal key As String, ByVal newValue As Variant) As Boolean
-    On Error GoTo Failed
+    On Error GoTo failed
     mLastError = ""
 
     Dim lo As ListObject
@@ -450,7 +450,7 @@ Public Function SetConstant(ByVal key As String, ByVal newValue As Variant) As B
     mLastError = "Key '" & key & "' was not found in tblConstants."
     Exit Function
 
-Failed:
+failed:
     mLastError = "Error " & Err.Number & " writing '" & key & "': " & Err.description
 End Function
 
@@ -467,7 +467,7 @@ End Function
 ' Resize simply redeclares where the table starts and ends. No cell ever moves,
 ' so neighbouring tables -- beside it or below it -- are untouched.
 Public Function SetCompanyList(ByVal names As Variant) As Boolean
-    On Error GoTo Failed
+    On Error GoTo failed
     mLastError = ""
 
     Dim lo As ListObject
@@ -523,7 +523,7 @@ Public Function SetCompanyList(ByVal names As Variant) As Boolean
     SetCompanyList = True
     Exit Function
 
-Failed:
+failed:
     mLastError = "Error " & Err.Number & " writing the company list: " & Err.description
 End Function
 
@@ -593,7 +593,7 @@ Public Function LambdaAll() As Collection
     Dim out As New Collection
     Set LambdaAll = out
 
-    On Error GoTo Done
+    On Error GoTo done
     Dim data As Variant, ixName As Long, ixCode As Long, ixDesc As Long
     Dim n As Long, i As Long, nm As String
     n = ReadLambdaBlock(data, ixName, ixCode, ixDesc)
@@ -605,7 +605,7 @@ Public Function LambdaAll() As Collection
         End If
     Next i
 
-Done:
+done:
 End Function
 
 ' Just the function names, 1-based. Returns a 0-length array if empty --
@@ -673,7 +673,7 @@ End Function
 ' Replace the entire table with the supplied entries. The single choke point
 ' every other writer goes through.
 Public Function WriteLambdaBlock(ByVal entries As Collection) As Boolean
-    On Error GoTo Failed
+    On Error GoTo failed
     mLastError = ""
 
     Dim lo As ListObject
@@ -751,7 +751,7 @@ Public Function WriteLambdaBlock(ByVal entries As Collection) As Boolean
     WriteLambdaBlock = True
     Exit Function
 
-Failed:
+failed:
     mLastError = "Error " & Err.Number & " writing the LAMBDA library: " & Err.description
 End Function
 
@@ -773,7 +773,7 @@ End Function
 Public Function UpsertLambdas(ByVal entries As Collection, _
                               ByRef addedCount As Long, _
                               ByRef updatedCount As Long) As Boolean
-    On Error GoTo Failed
+    On Error GoTo failed
     mLastError = ""
     addedCount = 0
     updatedCount = 0
@@ -833,13 +833,13 @@ Public Function UpsertLambdas(ByVal entries As Collection, _
     UpsertLambdas = WriteLambdaBlock(out)
     Exit Function
 
-Failed:
+failed:
     mLastError = "Error " & Err.Number & " updating the LAMBDA library: " & Err.description
 End Function
 
 ' Remove one function. Returns False (with LastError set) if it isn't there.
 Public Function DeleteLambda(ByVal name As String) As Boolean
-    On Error GoTo Failed
+    On Error GoTo failed
     mLastError = ""
 
     Dim current As Collection, out As New Collection
@@ -862,14 +862,14 @@ Public Function DeleteLambda(ByVal name As String) As Boolean
     DeleteLambda = WriteLambdaBlock(out)
     Exit Function
 
-Failed:
+failed:
     mLastError = "Error " & Err.Number & " deleting '" & name & "': " & Err.description
 End Function
 
 ' Change a function's name, keeping its formula and description.
 ' Refuses if the new name is already taken by a DIFFERENT function.
 Public Function RenameLambda(ByVal oldName As String, ByVal newName As String) As Boolean
-    On Error GoTo Failed
+    On Error GoTo failed
     mLastError = ""
 
     Dim current As Collection, out As New Collection
@@ -901,13 +901,13 @@ Public Function RenameLambda(ByVal oldName As String, ByVal newName As String) A
     RenameLambda = WriteLambdaBlock(out)
     Exit Function
 
-Failed:
+failed:
     mLastError = "Error " & Err.Number & " renaming '" & oldName & "': " & Err.description
 End Function
 
 ' Change a function's description, leaving name and formula alone.
 Public Function SetLambdaDescription(ByVal name As String, ByVal description As String) As Boolean
-    On Error GoTo Failed
+    On Error GoTo failed
     mLastError = ""
 
     Dim current As Collection, out As New Collection
@@ -931,7 +931,7 @@ Public Function SetLambdaDescription(ByVal name As String, ByVal description As 
     SetLambdaDescription = WriteLambdaBlock(out)
     Exit Function
 
-Failed:
+failed:
     mLastError = "Error " & Err.Number & " describing '" & name & "': " & Err.description
 End Function
 

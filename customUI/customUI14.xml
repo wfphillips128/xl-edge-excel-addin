@@ -86,8 +86,8 @@
                              <button id="P73Btn" label="Multiply Range by Selected Value" imageMso="PivotChartFormulasMenu" onAction="MultiplyByUserInput" screentip="Multiply Range by Selected Value" supertip="Scope is the selected range." />
                              <button id="P74Btn" label="Divide Range by Selected Value" imageMso="PivotChartFormulasMenu" onAction="DivideByUserInput" screentip="Divide Range by Selected Value" supertip="Scope is the selected range." />  
                              <menuSeparator id="Sep37" />
-                             <button id="P81Btn" label="Fill Range with Random Uniform Values" imageMso="ChartPlotArea" onAction="FillSelectionWithUniformRandom" screentip="Fill Range with Random Uniform Values (Between 1 to 100)" supertip="Scope is the selected range." />
-                             <button id="P82Btn" label="Fill Range with Random Normal Values" imageMso="ChartPlotArea" onAction="FillSelectionWithNormalRandom" screentip="Fill Range with Random Normal Values (Between 1 to 100)" supertip="Scope is the selected range." />      
+                             <button id="P81Btn" label="Fill Range with Random Uniform Values" imageMso="ChartPlotArea" onAction="FillSelectionWithUniformRandom" screentip="Fill Range with Random Uniform Values (Between X to Y)" supertip="Scope is the selected range." />
+                             <button id="P82Btn" label="Fill Range with Random Normal Values" imageMso="ChartPlotArea" onAction="FillSelectionWithNormalRandom" screentip="Fill Range with Random Normal Values (Between X to Y)" supertip="Scope is the selected range." />      
                              <menuSeparator id="Sep38" /> 
                              <button id="P91Btn" label="Toggle Case" imageMso="ChangeCaseGallery" onAction="ToggleCase" screentip="Toggle Case" supertip="Change text case of the selected range." />
                              <button id="P92Btn" label="Proper Case" imageMso="TextNormalCase" onAction="ConvertProperCase" screentip="Proper Case" supertip="Change text case of the selected range." />

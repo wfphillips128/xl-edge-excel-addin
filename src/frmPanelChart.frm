@@ -284,7 +284,7 @@ Private Sub Revalidate()
     If mBuilding Then Exit Sub
 
     Dim sp As TPanelSpec
-    Dim problem As String, warn As String
+    Dim problem As String, Warn As String
 
     On Error GoTo Broken
 
@@ -339,17 +339,17 @@ Private Sub Revalidate()
         Exit Sub
     End If
 
-    warn = PanelSpecWarnings(sp)
+    Warn = PanelSpecWarnings(sp)
     If mHasBlock And optSelection.value Then
         If sp.rows * sp.cols > mNPanels Then
-            If Len(warn) > 0 Then warn = warn & vbCrLf
-            warn = warn & (sp.rows * sp.cols) & " cells, " & _
+            If Len(Warn) > 0 Then Warn = Warn & vbCrLf
+            Warn = Warn & (sp.rows * sp.cols) & " cells, " & _
                    (sp.rows * sp.cols - mNPanels) & " will be blank."
         End If
     End If
 
     lblWarn.ForeColor = RGB(160, 80, 0)
-    lblWarn.caption = warn
+    lblWarn.caption = Warn
     cmdOK.Enabled = True
     Exit Sub
 
@@ -436,8 +436,8 @@ End Sub
 '  Results - one scalar per field
 ' ============================================================================
 
-Public Property Get OK() As Boolean
-    OK = mOK
+Public Property Get ok() As Boolean
+    ok = mOK
 End Property
 
 Public Property Get useSelection() As Boolean

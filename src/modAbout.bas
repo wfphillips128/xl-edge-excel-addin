@@ -21,7 +21,7 @@ Option Explicit
 '  EDIT THIS when you ship a new build.
 ' ----------------------------------------------------------------------------
 Public Const XLEDGE_NAME    As String = "XL Edge"
-Public Const XLEDGE_VERSION As String = "2.01"
+Public Const XLEDGE_VERSION As String = "2.02"
 
 ' ============================================================================
 '  Ribbon entry point
@@ -35,7 +35,7 @@ End Sub
 
 ' Callable from the Immediate window or another macro:  modAbout.LaunchAbout
 Public Sub LaunchAbout()
-    On Error GoTo Failed
+    On Error GoTo failed
 
     ' No FastModeOn here. The dialog is pure UI -- it reads nothing from any
     ' worksheet, so there is nothing to speed up and nothing to protect.
@@ -46,7 +46,7 @@ Public Sub LaunchAbout()
     Set f = Nothing
     Exit Sub
 
-Failed:
+failed:
     ' The form is the nice presentation, not the only one. If it fails to build
     ' for any reason, the name and version still reach the user.
     MsgBox VersionLine() & vbCrLf & vbCrLf & _
