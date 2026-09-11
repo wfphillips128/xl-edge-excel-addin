@@ -6,7 +6,7 @@ productivity macros built up over years of finance and reporting work.
 
 Free to use and free to modify. MIT licensed. No sign-up, no trial, no telemetry.
 
-![The XL Edge tab in the Excel ribbon: a Productivity Tools group, a LAMBDA Studio group with a searchable library and dropdowns, and the LAMBDA Tools menu open on its Manage LAMBDA Library submenu](xl-edge-ribbon.png)
+![The XL Edge tab in the Excel ribbon: a Productivity Tools group, Format/Formula/Tools menus, a LAMBDA Studio group with a filter box and two dropdowns, and a Settings group](xl-edge-tab.png)
 
 > ### Requirements, up front
 >
@@ -40,6 +40,8 @@ Custom LAMBDA functions are powerful and almost impossible to manage. They live
 in Name Manager, one workbook at a time, with a text box for a formula and
 nowhere to record what the thing actually does. Moving one between workbooks
 means copying strings by hand.
+
+![The LAMBDA Tools menu open on its Manage LAMBDA Library submenu, showing inject, import, export and gist commands](xl-edge-ribbon.png)
 
 LAMBDA Studio replaces that with a real library:
 
@@ -98,6 +100,19 @@ the ribbon:
   copy sheets to a new file without formulas, remove formulas from a
   selection / sheet / workbook, shrink the file, and quick jumps to the VBA
   editor, macro dialog and add-in location.
+
+<table>
+<tr>
+<td width="33%" valign="top"><img src="xl-edge-format-tools.png" alt="The Format Tools menu: number-scale and date toggles, financial formatting presets, font, colour, fill and indent toggles, remove empty rows and columns, and row-height / column-width commands"></td>
+<td width="33%" valign="top"><img src="xl-edge-formula-tools.png" alt="The Formula Tools menu: fill right and down, list formula as text, wrap with ROUND / IFERROR / parentheses / flip sign, absolute and relative refs, SUM to SUBTOTAL, text trim and prefix / suffix, scale by 1000, and case changes"></td>
+<td width="33%" valign="top"><img src="xl-edge-tools.png" alt="The Tools menu: create panel chart, speak cell contents, expand formula bar, toggle grid, unmerge and center across, copy sheets without formulas, remove formulas, shrink file, and jumps to the macro dialog, VBA editor and add-in location"></td>
+</tr>
+<tr>
+<td align="center"><em>Format Tools</em></td>
+<td align="center"><em>Formula Tools</em></td>
+<td align="center"><em>Tools</em></td>
+</tr>
+</table>
 
 ### Settings & About
 
