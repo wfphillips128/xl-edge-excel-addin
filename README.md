@@ -15,6 +15,10 @@ Free to use and free to modify. MIT licensed. No sign-up, no trial, no telemetry
 > `LAMBDA` (Microsoft 365 / Excel 2021+). This is a `.xlam` add-in; there is no
 > Mac or web build.
 
+**Overview in PDF:** an 8-page [brochure](docs/XL-Edge-brochure.pdf) (US Letter,
+for printing or email) and a 13-page [carousel](docs/XL-Edge-carousel.pdf)
+(the LinkedIn version).
+
 ---
 
 ## Install
