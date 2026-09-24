@@ -1,7 +1,7 @@
 Attribute VB_Name = "modProductivity_Code"
 Option Explicit
 
-' LOWER_BOUND, UPPER_BOUND, DEFAULT_ROW_HEIGHT, DEFAULT_COLUMN_WIDTH and
+' DEFAULT_ROW_HEIGHT, DEFAULT_COLUMN_WIDTH and
 ' myFooter moved to tblConstants on the add-in's reference sheet. They are
 ' still visible here as global Property Get procedures in AddInStorage, so
 ' every reference below is unchanged. Edit them from the XL Edge settings
@@ -1538,118 +1538,6 @@ CleanUp:
     MsgBox "Blank cells updated.", vbInformation
 
 End Sub
-
-Public Sub FillSelectionWithUniformRandom(control As IRibbonControl)
-    Dim errNum As Long
-    Dim errTxt As String
-    Dim rng As Range
-    Dim area As Range
-    Dim arr As Variant
-    Dim r As Long, c As Long
-    
-    ' Validate selection
-    If Not TypeOf Application.Selection Is Range Then Exit Sub
-    Set rng = Application.Selection
-
-    Randomize
-
-    On Error GoTo CleanUp
-    AppStateManager.FastModeOn
-
-    ' Process all cells (formulas included by design)
-    For Each area In rng.Areas
-        arr = area.Value2
-
-        If IsArray(arr) Then
-            For r = 1 To UBound(arr, 1)
-                For c = 1 To UBound(arr, 2)
-                    arr(r, c) = GetUniformRandom(LOWER_BOUND, UPPER_BOUND)
-                Next c
-            Next r
-            area.Value2 = arr
-        Else
-            area.Value2 = GetUniformRandom(LOWER_BOUND, UPPER_BOUND)
-        End If
-    Next area
-
-CleanUp:
-    errNum = Err.Number
-    errTxt = Err.description
-    AppStateManager.FastModeOff
-    ReportError errNum, errTxt, "Fill Range with Random Uniform Values"
-End Sub
-
-Public Sub FillSelectionWithNormalRandom(control As IRibbonControl)
-    Dim errNum As Long
-    Dim errTxt As String
-    Dim rng As Range
-    Dim area As Range
-    Dim arr As Variant
-    Dim r As Long, c As Long
-    
-    ' Validate selection
-    If Not TypeOf Application.Selection Is Range Then Exit Sub
-    Set rng = Application.Selection
-
-    Randomize
-
-    On Error GoTo CleanUp
-    AppStateManager.FastModeOn
-
-    ' Process all cells (formulas included by design)
-    For Each area In rng.Areas
-        arr = area.Value2
-
-        If IsArray(arr) Then
-            For r = 1 To UBound(arr, 1)
-                For c = 1 To UBound(arr, 2)
-                    arr(r, c) = GetNormalRandom(LOWER_BOUND, UPPER_BOUND)
-                Next c
-            Next r
-            area.Value2 = arr
-        Else
-            area.Value2 = GetNormalRandom(LOWER_BOUND, UPPER_BOUND)
-        End If
-    Next area
-
-CleanUp:
-    errNum = Err.Number
-    errTxt = Err.description
-    AppStateManager.FastModeOff
-    ReportError errNum, errTxt, "Fill Range with Random Normal Values"
-End Sub
-
-
-Public Function GetUniformRandom(lowerB As Double, upperB As Double) As Double
-    GetUniformRandom = lowerB + (upperB - lowerB) * Rnd
-End Function
-
-
-
-Public Function GetNormalRandom(lowerB As Double, upperB As Double) As Double
-    Dim u1 As Double, u2 As Double
-    Dim z As Double
-    Dim mean As Double, stdDev As Double
-
-    mean = (lowerB + upperB) / 2
-    stdDev = (upperB - lowerB) / 6
-
-    ' Avoid log(0)
-    Do
-        u1 = Rnd
-    Loop While u1 = 0
-
-    u2 = Rnd
-
-    z = Sqr(-2 * Log(u1)) * Cos(2 * WorksheetFunction.Pi() * u2)
-
-    GetNormalRandom = mean + z * stdDev
-
-    ' Clamp to bounds
-    If GetNormalRandom < lowerB Then GetNormalRandom = lowerB
-    If GetNormalRandom > upperB Then GetNormalRandom = upperB
-End Function
-
 
 Public Sub AddPrefix(control As IRibbonControl)
     Dim errNum As Long

@@ -80,6 +80,43 @@ miniature copy of the same scale, which is what makes the panels comparable.
 Line and bar orientations, and a self-check (`PanelSelfCheck`) that exercises
 the geometry with every workbook closed.
 
+### Monte Carlo Distributions
+
+Four items on the **Tools** menu, directly under Create Panel Chart, put Monte
+Carlo simulation into a workbook as **native LAMBDA formulas** — modern
+versions of the distribution functions in tools such as XLRisk and @RISK.
+
+![The Tools menu open on Insert Monte Carlo Distribution, with the Continuous fly-out showing beta, cumulative, Erlang, exponential, gamma, lognormal, normal, PERT, triangular, uniform and Weibull](xl-edge-monte-carlo.png)
+
+- **Insert Monte Carlo Distribution** — pick from 15 distributions, each with a
+  small picture of its shape:
+  - *Continuous:* Beta, Cumulative, Erlang, Exponential, Gamma, Lognormal,
+    Normal, PERT, Triangular, Uniform, Weibull
+  - *Discrete:* Bernoulli, Binomial, Discrete, Discrete Uniform
+
+  ![The Discrete group of the same fly-out: Bernoulli, Binomial, Discrete and Discrete Uniform](xl-edge-monte-carlo-discrete.png)
+
+  It prompts for each parameter and writes an ordinary formula such as
+  `=fx.RiskPertλ($C$4, $C$5, $C$6, MC_Trials, 7)`. The trial count lives in one
+  workbook name (`MC_Trials`), and every input gets its own stream id so the
+  inputs stay independent.
+- **Insert Monte Carlo Statistics** — a labelled block of trials, mean,
+  standard deviation, min, max and percentiles for a spilled result.
+- **Insert Monte Carlo Histogram Data** — bin centres and counts, ready to chart.
+- **Install or Update Monte Carlo Library** — pulls the functions from the
+  public [gist](https://gist.github.com/wfphillips128/f91bff77212ab2c3d8f55a4f0a51b8b6)
+  into the active workbook. Needs an internet connection.
+
+Each distribution is a **non-volatile dynamic array**: one cell spills every
+trial, and the trials do not reshuffle when something unrelated recalculates,
+because the randomness is keyed to a seed rather than to `RAND`. The add-in only
+*writes* the formulas — the functions themselves are defined names inside the
+workbook — so a finished model keeps calculating for people who have never
+installed XL Edge.
+
+The full function reference, conventions and attribution are on the
+[project page](https://edgewisedata.com/projects/monte-carlo-lambdas).
+
 ### Productivity Tools
 
 Macros refactored to modern VBA standards for speed and reliability, grouped on
@@ -95,7 +132,8 @@ the ribbon:
   parentheses / sign-flip, convert to absolute or relative references, change
   `SUM` to `SUBTOTAL`, list a formula as text, trim/prefix/suffix text, scale a
   range by 1000 or by a selected value, change case, and more.
-- **Tools** — **create a panel chart** (above), speak cell contents, toggle
+- **Tools** — **create a panel chart** and the **Monte Carlo** items (above),
+  speak cell contents, toggle
   gridlines, unmerge & center across,
   copy sheets to a new file without formulas, remove formulas from a
   selection / sheet / workbook, shrink the file, and quick jumps to the VBA
@@ -105,7 +143,7 @@ the ribbon:
 <tr>
 <td width="33%" valign="top"><img src="xl-edge-format-tools.png" alt="The Format Tools menu: number-scale and date toggles, financial formatting presets, font, colour, fill and indent toggles, remove empty rows and columns, and row-height / column-width commands"></td>
 <td width="33%" valign="top"><img src="xl-edge-formula-tools.png" alt="The Formula Tools menu: fill right and down, list formula as text, wrap with ROUND / IFERROR / parentheses / flip sign, absolute and relative refs, SUM to SUBTOTAL, text trim and prefix / suffix, scale by 1000, and case changes"></td>
-<td width="33%" valign="top"><img src="xl-edge-tools.png" alt="The Tools menu: create panel chart, speak cell contents, expand formula bar, toggle grid, unmerge and center across, copy sheets without formulas, remove formulas, shrink file, and jumps to the macro dialog, VBA editor and add-in location"></td>
+<td width="33%" valign="top"><img src="xl-edge-tools.png" alt="The Tools menu: create panel chart, the four Monte Carlo items (insert distribution, insert statistics, insert histogram data, install or update the library), speak cell contents, expand formula bar, toggle grid, unmerge and center across, copy sheets without formulas, remove formulas, shrink file, and jumps to the macro dialog, VBA editor and add-in location"></td>
 </tr>
 <tr>
 <td align="center"><em>Format Tools</em></td>
@@ -124,7 +162,7 @@ defaults are yours to change without touching code.
 
 ## Source
 
-All 19 VBA modules are exported to [`src/`](src/) so the code is browsable
+All 21 VBA modules are exported to [`src/`](src/) so the code is browsable
 without opening Excel. The ribbon definition is in
 [`customUI/customUI14.xml`](customUI/customUI14.xml).
 

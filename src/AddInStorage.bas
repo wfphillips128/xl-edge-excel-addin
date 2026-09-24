@@ -78,8 +78,6 @@ Private Const DEF_PERIOD_END               As Date = #6/30/2026#
 Private Const DEF_ITD_START                As Date = #1/1/2019#
 Private Const DEF_FORMULABAR_HEIGHT_SM     As Double = 2
 Private Const DEF_FORMULABAR_HEIGHT_LG     As Double = 15
-Private Const DEF_LOWER_BOUND              As Double = 1
-Private Const DEF_UPPER_BOUND              As Double = 100
 Private Const DEF_HEADER_ROW_HEIGHT_SINGLE As Double = 42
 Private Const DEF_HEADER_ROW_HEIGHT_MULTI  As Double = 32
 Private Const DEF_DEFAULT_ROW_HEIGHT       As Double = 15
@@ -364,13 +362,6 @@ Public Property Get FORMULABAR_HEIGHT_LG() As Double
     FORMULABAR_HEIGHT_LG = ConstDouble("FORMULABAR_HEIGHT_LG", DEF_FORMULABAR_HEIGHT_LG)
 End Property
 
-Public Property Get LOWER_BOUND() As Double
-    LOWER_BOUND = ConstDouble("LOWER_BOUND", DEF_LOWER_BOUND)
-End Property
-
-Public Property Get UPPER_BOUND() As Double
-    UPPER_BOUND = ConstDouble("UPPER_BOUND", DEF_UPPER_BOUND)
-End Property
 
 Public Property Get HEADER_ROW_HEIGHT_SINGLE() As Double
     HEADER_ROW_HEIGHT_SINGLE = ConstDouble("HEADER_ROW_HEIGHT_SINGLE", DEF_HEADER_ROW_HEIGHT_SINGLE)

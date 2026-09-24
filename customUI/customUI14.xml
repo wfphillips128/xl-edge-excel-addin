@@ -86,9 +86,6 @@
                              <button id="P73Btn" label="Multiply Range by Selected Value" imageMso="PivotChartFormulasMenu" onAction="MultiplyByUserInput" screentip="Multiply Range by Selected Value" supertip="Scope is the selected range." />
                              <button id="P74Btn" label="Divide Range by Selected Value" imageMso="PivotChartFormulasMenu" onAction="DivideByUserInput" screentip="Divide Range by Selected Value" supertip="Scope is the selected range." />  
                              <menuSeparator id="Sep37" />
-                             <button id="P81Btn" label="Fill Range with Random Uniform Values" imageMso="ChartPlotArea" onAction="FillSelectionWithUniformRandom" screentip="Fill Range with Random Uniform Values (Between X to Y)" supertip="Scope is the selected range." />
-                             <button id="P82Btn" label="Fill Range with Random Normal Values" imageMso="ChartPlotArea" onAction="FillSelectionWithNormalRandom" screentip="Fill Range with Random Normal Values (Between X to Y)" supertip="Scope is the selected range." />      
-                             <menuSeparator id="Sep38" /> 
                              <button id="P91Btn" label="Toggle Case" imageMso="ChangeCaseGallery" onAction="ToggleCase" screentip="Toggle Case" supertip="Change text case of the selected range." />
                              <button id="P92Btn" label="Proper Case" imageMso="TextNormalCase" onAction="ConvertProperCase" screentip="Proper Case" supertip="Change text case of the selected range." />
                              <button id="P93Btn" label="Sentence Case" imageMso="TextStyles" onAction="ConvertSentenceCase" screentip="Sentence Case" supertip="Change text case of the selected range." />
@@ -101,7 +98,38 @@
                         <menu id="XLEdge7">   
                             <button id="Panel11Btn" label="Create Panel Chart" imageMso="PivotChartMultiplePlots" onAction="CreatePanelChart" screentip="Create Panel Chart"
                                     supertip="Build a grid of small charts - one chart object, one shared scale, on its own new sheet. Select your data block first to build from it, or run it with nothing selected to get a placeholder block to paste over. Prints on one landscape page." />
-                             <menuSeparator id="PanelSep01" />   
+                             <menuSeparator id="PanelSep01" /> 
+                             <menu id="McDistMenu" label="Insert Monte Carlo Distribution" image="mcNormal" itemSize="large" screentip="Insert Monte Carlo Distribution"
+                                   supertip="Pick a distribution, set its parameters and number of trials, and write the formula at a cell you choose. What it writes is a native LAMBDA call, so the finished workbook keeps calculating for people who do not have XL Edge. Each input is given its own VarID so its trials stay independent of the others.">
+                                 <gallery id="McGalCont" label="Continuous" description="Any value in a range: costs, durations, rates, prices."
+                                          image="mcNormal" columns="3" itemWidth="32" itemHeight="32" onAction="McPickDistribution">
+                                     <item id="McD_Beta"        label="Beta"        image="mcBeta"        supertip="Shape1, Shape2, optional lower and upper bounds. Flexible shape on a fixed range." />
+                                     <item id="McD_Cumulative"  label="Cumulative"  image="mcCumulative"  supertip="Min, Max, and points on the cumulative curve. Use when you have percentile estimates." />
+                                     <item id="McD_Erlang"      label="Erlang"      image="mcErlang"      supertip="K (whole number), scale. Waiting time until the Kth event." />
+                                     <item id="McD_Exponential" label="Exponential" image="mcExponential" supertip="Mean (not the rate). Time between random events." />
+                                     <item id="McD_Gamma"       label="Gamma"       image="mcGamma"       supertip="Shape, scale. Positive, right-skewed quantities." />
+                                     <item id="McD_Lognormal"   label="Lognormal"   image="mcLognormal"   supertip="Mean and standard deviation of ln(X). Positive values with a long right tail." />
+                                     <item id="McD_Normal"      label="Normal"      image="mcNormal"      supertip="Mean, standard deviation. The symmetric bell curve." />
+                                     <item id="McD_Pert"        label="PERT"        image="mcPert"        supertip="Min, most likely, max. A smooth three-point estimate." />
+                                     <item id="McD_Triangular"  label="Triangular"  image="mcTriangular"  supertip="Min, most likely, max. A straight-edged three-point estimate." />
+                                     <item id="McD_Uniform"     label="Uniform"     image="mcUniform"     supertip="Min, max. Every value in the range equally likely." />
+                                     <item id="McD_Weibull"     label="Weibull"     image="mcWeibull"     supertip="Shape, scale. Lifetimes and failure times." />
+                                 </gallery>
+                                 <gallery id="McGalDisc" label="Discrete" description="Countable outcomes: events, counts, scenarios."
+                                          image="mcDiscrete" columns="2" itemWidth="32" itemHeight="32" onAction="McPickDistribution">
+                                     <item id="McD_Bernoulli"   label="Bernoulli"        image="mcBernoulli" supertip="P. Returns 1 with probability P, otherwise 0 - does the event happen?" />
+                                     <item id="McD_Binomial"    label="Binomial"         image="mcBinomial"  supertip="N, P. Number of successes in N independent tries." />
+                                     <item id="McD_Discrete"    label="Discrete"         image="mcDiscrete"  supertip="A list of values and their probabilities, which must sum to 1." />
+                                     <item id="McD_DUniform"    label="Discrete Uniform" image="mcDUniform"  supertip="A list of values, each equally likely." />
+                                 </gallery>
+                             </menu>
+                             <button id="McStatsBtn" label="Insert Monte Carlo Statistics" imageMso="AutoSum" onAction="McInsertStats" screentip="Insert Monte Carlo Statistics"
+                                     supertip="Write a summary block - trials, mean, standard deviation, minimum, maximum and percentiles - for a spilled range of simulated values. Select the spilled range first, or the cell it spills from." />
+                             <button id="McHistBtn" label="Insert Monte Carlo Histogram Data" imageMso="ChartInsert" onAction="McInsertHistogram" screentip="Insert Monte Carlo Histogram Data"
+                                     supertip="Write bin centres and counts for a spilled range of simulated values, ready to chart. Select the spilled range first, or the cell it spills from." />
+                             <button id="McLibBtn" label="Install or Update Monte Carlo Library" imageMso="TableInsert" onAction="McInstallLibrary" screentip="Install or Update Monte Carlo Library"
+                                     supertip="Add the Monte Carlo LAMBDA functions to the active workbook, or refresh them to the current version. Inserting a distribution does this for you automatically; run it on its own to install the library without inserting anything." />
+                             <menuSeparator id="McSep01" />
                              <button id="T13Btn" label="Speak Cell Contents" imageMso="SpeakCells" onAction="SpeakCellContents" screentip="Speak Cell Contents" supertip="Have Excel speak the contents of selected range." /> 
                              <button id="T21Btn" label="Expand and Collapse Formula Bar" imageMso="MenuExpandCollapse" onAction="ToggleFormulaBar" screentip="Expand and Collapse Formula Bar" supertip="Tool to expand and collapse the formula bar (Ctrl + Shift + U)." /> 
                              <button id="T22Btn" label="Toggle Grid" imageMso="TableShowGridlines" onAction="ToggleGrid" screentip="Toggle Grid" supertip="Tool to turn Excel's gridlines on and off." />                               

@@ -215,7 +215,7 @@ Private Sub WriteStackSums(ByVal ws As Worksheet, ByRef sp As TPanelSpec, _
 
     Dim arr() As Variant
     Dim p As Long, k As Long, e As Long
-    Dim s As String, Ref As String
+    Dim s As String, ref As String
 
     ws.Cells(ly.ssR0 - 1, ly.ssC0).value = "Stacked totals - the shared scale reads these"
     ws.Cells(ly.ssR0 - 1, ly.ssC0).Font.bold = True
@@ -225,9 +225,9 @@ Private Sub WriteStackSums(ByVal ws As Worksheet, ByRef sp As TPanelSpec, _
         For k = 0 To sp.Periods - 1
             s = ""
             For e = 0 To sp.Elements - 1
-                Ref = ColLetters(ly.inC0 + e * sp.Periods + k) & (ly.inR0 + p)
+                ref = ColLetters(ly.inC0 + e * sp.Periods + k) & (ly.inR0 + p)
                 If Len(s) > 0 Then s = s & "+"
-                s = s & Ref
+                s = s & ref
             Next e
             arr(p + 1, k + 1) = "=" & s
         Next k

@@ -36,7 +36,8 @@ Public Sub CreateShortcuts()
     Application.OnKey "+^4", QualifiedMacro("ToggleFonts2")           'Ctrl-Shift-4
     Application.OnKey "+^6", QualifiedMacro("ToggleFontColors2")      'Ctrl-Shift-6
     Application.OnKey "+^7", QualifiedMacro("ToggleFillColors2")      'Ctrl-Shift-7
-    Application.OnKey "+^8", QualifiedMacro("ToggleIndents2")         'Ctrl-Shift-8
+    Application.OnKey "+^R", QualifiedMacro("FillRight")              'Ctrl-Shift-R
+    Application.OnKey "+^D", QualifiedMacro("FillDown")               'Ctrl-Shift-D
     Application.OnKey "+^U", QualifiedMacro("ToggleFormulaBar2")      'Ctrl-Shift-U
 End Sub
 
@@ -52,7 +53,8 @@ Public Sub DeleteShortcuts()
     Application.OnKey "+^4"
     Application.OnKey "+^6"
     Application.OnKey "+^7"
-    Application.OnKey "+^8"
+    Application.OnKey "+^R"
+    Application.OnKey "+^D"
     Application.OnKey "+^U"
     Application.OnKey "{F1}"      'restores Help if an older build disabled it
 End Sub
@@ -400,6 +402,10 @@ End Sub
 
 
 Sub FillRight(control As IRibbonControl)
+    FillRight2
+End Sub
+
+Sub FillRight2()
 'Copies the selected formulas to the right, one column at a time.
 '
 'A column is filled only when BOTH hold:
@@ -487,8 +493,12 @@ Private Function HasFormulaAboveOrBelow(ByVal ws As Worksheet, _
     End If
 End Function
 
-
 Sub FillDown(control As IRibbonControl)
+    FillDown2
+End Sub
+
+
+Sub FillDown2()
 'Fills the selected formulas downwards into blank rows only.
 '
 'The fill stops entirely at the first row where ANY destination cell is not

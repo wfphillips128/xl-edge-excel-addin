@@ -440,14 +440,14 @@ End Function
 ' and also what makes an off-by-one look like a plausible chart. Every caller
 ' passes both columns by name off TPanelLayout; a literal RC[-3] never appears
 ' in this module.
-Public Function Ref(ByVal fromCol As Long, ByVal toCol As Long, _
+Public Function ref(ByVal fromCol As Long, ByVal toCol As Long, _
                     ByVal r As Long) As String
     If mMode = amA1 Then
-        Ref = ColLetters(toCol) & r
+        ref = ColLetters(toCol) & r
     ElseIf fromCol = toCol Then
-        Ref = "RC"
+        ref = "RC"
     Else
-        Ref = "RC[" & (toCol - fromCol) & "]"
+        ref = "RC[" & (toCol - fromCol) & "]"
     End If
 End Function
 
@@ -475,7 +475,7 @@ End Function
 ' A same-row span of columns, used by the stacked base to sum a band.
 Public Function RefSpan(ByVal fromCol As Long, ByVal c1 As Long, _
                         ByVal c2 As Long, ByVal r As Long) As String
-    RefSpan = Ref(fromCol, c1, r) & ":" & Ref(fromCol, c2, r)
+    RefSpan = ref(fromCol, c1, r) & ":" & ref(fromCol, c2, r)
 End Function
 
 ' The input block - the only cells the reader ever edits.
@@ -502,33 +502,33 @@ End Function
 ' ============================================================================
 
 Public Function FxPos(ByRef ly As TPanelLayout, ByVal r As Long) As String
-    FxPos = "=" & Ref(ly.cPos, ly.cX, r) & "-" & Par(ly, PR_LEAD)
+    FxPos = "=" & ref(ly.cPos, ly.cX, r) & "-" & Par(ly, PR_LEAD)
 End Function
 
 Public Function FxBlk(ByRef ly As TPanelLayout, ByVal r As Long) As String
     Dim p As String, pitch As String
-    p = Ref(ly.cBlk, ly.cPos, r)
+    p = ref(ly.cBlk, ly.cPos, r)
     pitch = "(" & Par(ly, PR_BLOCKSLOTS) & "+" & Par(ly, PR_SPACERS) & ")"
     FxBlk = "=IF(" & p & "<=0,-1,INT((" & p & "-1)/" & pitch & "))"
 End Function
 
 Public Function FxSub(ByRef ly As TPanelLayout, ByVal r As Long) As String
     Dim p As String, pitch As String
-    p = Ref(ly.cSub, ly.cPos, r)
+    p = ref(ly.cSub, ly.cPos, r)
     pitch = "(" & Par(ly, PR_BLOCKSLOTS) & "+" & Par(ly, PR_SPACERS) & ")"
     FxSub = "=IF(" & p & "<=0,-1,MOD(" & p & "-1," & pitch & "))"
 End Function
 
 Public Function FxK(ByRef ly As TPanelLayout, ByVal r As Long) As String
     Dim s As String
-    s = Ref(ly.cK, ly.cSub, r)
+    s = ref(ly.cK, ly.cSub, r)
     FxK = "=IF(OR(" & s & "<0," & s & ">=" & Par(ly, PR_BLOCKSLOTS) & ")," & _
           "-1,INT(" & s & "/" & Par(ly, PR_SUBSLOTS) & "))"
 End Function
 
 Public Function FxE(ByRef ly As TPanelLayout, ByVal r As Long) As String
     Dim s As String
-    s = Ref(ly.cE, ly.cSub, r)
+    s = ref(ly.cE, ly.cSub, r)
     FxE = "=IF(OR(" & s & "<0," & s & ">=" & Par(ly, PR_BLOCKSLOTS) & ")," & _
           "-1,MOD(" & s & "," & Par(ly, PR_SUBSLOTS) & "))"
 End Function
@@ -537,9 +537,9 @@ End Function
 ' blocks, or bar's trailing gap. Everything that draws checks this first.
 Public Function FxSep(ByRef ly As TPanelLayout, ByVal r As Long) As String
     Dim p As String, s As String, b As String
-    p = Ref(ly.cSep, ly.cPos, r)
-    s = Ref(ly.cSep, ly.cSub, r)
-    b = Ref(ly.cSep, ly.cBlk, r)
+    p = ref(ly.cSep, ly.cPos, r)
+    s = ref(ly.cSep, ly.cSub, r)
+    b = ref(ly.cSep, ly.cBlk, r)
     FxSep = "=IF(OR(" & p & "<=0," & s & "<0," & s & ">=" & _
             Par(ly, PR_BLOCKSLOTS) & "," & b & ">=" & Par(ly, PR_BLOCKS) & _
             "),1,0)"
@@ -549,10 +549,10 @@ End Function
 Public Function FxKx(ByRef ly As TPanelLayout, ByRef sp As TPanelSpec, _
                      ByVal r As Long) As String
     Dim p As String, s As String, k As String, sep As String
-    p = Ref(ly.cKx, ly.cPos, r)
-    s = Ref(ly.cKx, ly.cSub, r)
-    k = Ref(ly.cKx, ly.cK, r)
-    sep = Ref(ly.cKx, ly.cSep, r)
+    p = ref(ly.cKx, ly.cPos, r)
+    s = ref(ly.cKx, ly.cSub, r)
+    k = ref(ly.cKx, ly.cK, r)
+    sep = ref(ly.cKx, ly.cSep, r)
 
     If PS_StacksElements(sp) Then
         ' AREA. A stacked area cannot be gapped at all - Excel joins whatever
@@ -575,10 +575,10 @@ End Function
 Public Function FxBlkx(ByRef ly As TPanelLayout, ByRef sp As TPanelSpec, _
                        ByVal r As Long) As String
     Dim p As String, s As String, b As String, sep As String
-    p = Ref(ly.cBlkx, ly.cPos, r)
-    s = Ref(ly.cBlkx, ly.cSub, r)
-    b = Ref(ly.cBlkx, ly.cBlk, r)
-    sep = Ref(ly.cBlkx, ly.cSep, r)
+    p = ref(ly.cBlkx, ly.cPos, r)
+    s = ref(ly.cBlkx, ly.cSub, r)
+    b = ref(ly.cBlkx, ly.cBlk, r)
+    sep = ref(ly.cBlkx, ly.cSep, r)
 
     If PS_StacksElements(sp) Then
         FxBlkx = "=IF(" & p & "<=0,0,IF(" & s & "<=" & _
@@ -593,9 +593,9 @@ End Function
 Public Function FxCat(ByRef ly As TPanelLayout, ByRef sp As TPanelSpec, _
                       ByVal r As Long) As String
     Dim sep As String, kx As String, e As String
-    sep = Ref(ly.cCat, ly.cSep, r)
-    kx = Ref(ly.cCat, ly.cKx, r)
-    e = Ref(ly.cCat, ly.cE, r)
+    sep = ref(ly.cCat, ly.cSep, r)
+    kx = ref(ly.cCat, ly.cKx, r)
+    e = ref(ly.cCat, ly.cE, r)
 
     FxCat = "=IF(" & sep & "=1," & EMPTYTXT & ",IF(AND(MOD(" & kx & "," & _
             ly.labelEvery & ")=0," & e & "=INT((" & Par(ly, PR_SUBSLOTS) & _
@@ -629,8 +629,8 @@ Public Function FxValueRef(ByRef ly As TPanelLayout, ByRef sp As TPanelSpec, _
                            ByVal band As Long, ByVal element As Long, _
                            ByVal col As Long, ByVal r As Long) As String
     Dim blkx As String, kx As String
-    blkx = Ref(col, ly.cBlkx, r)
-    kx = Ref(col, ly.cKx, r)
+    blkx = ref(col, ly.cBlkx, r)
+    kx = ref(col, ly.cKx, r)
 
     FxValueRef = "INDEX(" & InRng(ly) & "," & _
                  FxPanelExpr(ly, sp, band, blkx) & "," & _
@@ -665,9 +665,9 @@ Public Function FxValue(ByRef ly As TPanelLayout, ByRef sp As TPanelSpec, _
     Dim sep As String, e As String, blkx As String
     value = FxValueRef(ly, sp, band, element, col, r)
     placed = FxPlaced(ly, sp, band, value)
-    sep = Ref(col, ly.cSep, r)
-    e = Ref(col, ly.cE, r)
-    blkx = Ref(col, ly.cBlkx, r)
+    sep = ref(col, ly.cSep, r)
+    e = ref(col, ly.cE, r)
+    blkx = ref(col, ly.cBlkx, r)
 
     If PS_Labelled(sp) Then
         ' DOT. A grid may hold fewer panels than cells, and a blank input cell
@@ -754,7 +754,7 @@ Public Function FxSumIgnoringNA(ByVal fromCol As Long, ByVal c1 As Long, _
 
     Dim s As String, c As Long, ref1 As String
     For c = c1 To c2
-        ref1 = Ref(fromCol, c, r)
+        ref1 = ref(fromCol, c, r)
         If Len(s) > 0 Then s = s & "+"
         s = s & "IF(ISNA(" & ref1 & "),0," & ref1 & ")"
     Next c
@@ -767,8 +767,8 @@ End Function
 Public Function FxMask(ByRef ly As TPanelLayout, ByRef sp As TPanelSpec, _
                        ByVal r As Long) As String
     Dim p As String, s As String
-    p = Ref(ly.cMask, ly.cPos, r)
-    s = Ref(ly.cMask, ly.cSub, r)
+    p = ref(ly.cMask, ly.cPos, r)
+    s = ref(ly.cMask, ly.cSub, r)
     FxMask = "=IF(OR(" & p & "<=0," & s & ">=" & Par(ly, PR_BLOCKSLOTS) & _
              ")," & PS_Bands(sp) & ",NA())"
 End Function
@@ -802,7 +802,7 @@ Public Function FxPinValue(ByRef ly As TPanelLayout, ByRef sp As TPanelSpec, _
     Dim value As String, placed As String, sep As String
     value = FxValueRef(ly, sp, band, element, col, r)
     placed = FxPlaced(ly, sp, band, value)
-    sep = Ref(col, ly.cSep, r)
+    sep = ref(col, ly.cSep, r)
 
     FxPinValue = "=IF(" & sep & "=1,NA(),IF(" & value & "=" & EMPTYTXT & _
                  ",NA(),IF(" & PinMine(value, tone) & "," & placed & ",NA())))"
@@ -819,7 +819,7 @@ Public Function FxPinStem(ByRef ly As TPanelLayout, ByRef sp As TPanelSpec, _
 
     Dim value As String, sep As String, stem As String
     value = FxValueRef(ly, sp, band, element, col, r)
-    sep = Ref(col, ly.cSep, r)
+    sep = ref(col, ly.cSep, r)
     stem = "ABS(" & value & ")/" & Par(ly, PR_SPAN) & "*" & Par(ly, PR_BANDFRAC)
 
     FxPinStem = "=IF(" & sep & "=1,0,IF(" & value & "=" & EMPTYTXT & _
@@ -842,7 +842,7 @@ Public Function FxPointLabel(ByRef ly As TPanelLayout, ByRef sp As TPanelSpec, _
 
     Dim value As String, sep As String, txt As String
     value = FxValueRef(ly, sp, band, element, col, r)
-    sep = Ref(col, ly.cSep, r)
+    sep = ref(col, ly.cSep, r)
     txt = "TEXT(" & value & "," & Q(st.labelFormat) & ")"
 
     If PS_TwoTone(sp) Then
