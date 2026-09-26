@@ -86,27 +86,40 @@ the geometry with every workbook closed.
 
 ### Monte Carlo Distributions
 
-Four items on the **Tools** menu, directly under Create Panel Chart, put Monte
+Five items on the **Tools** menu, directly under Create Panel Chart, put Monte
 Carlo simulation into a workbook as **native LAMBDA formulas** — modern
 versions of the distribution functions in tools such as XLRisk and @RISK.
 
-![The Tools menu open on Insert Monte Carlo Distribution, with the Continuous fly-out showing beta, cumulative, Erlang, exponential, gamma, lognormal, normal, PERT, triangular, uniform and Weibull](xl-edge-monte-carlo.png)
+> **New in 2.1:** 24 more distributions (39 in all) and **Insert Monte Carlo
+> Risk Measures** for Value at Risk, Conditional Value at Risk and Expected
+> Shortfall. The library behind them is now v0.3.0.
 
-- **Insert Monte Carlo Distribution** — pick from 15 distributions, each with a
+![The Tools menu open on Insert Monte Carlo Distribution, with the Continuous fly-out showing a grid of thirty distributions from beta and Cauchy to truncated normal, uniform and Weibull](xl-edge-monte-carlo.png)
+
+- **Insert Monte Carlo Distribution** — pick from 39 distributions, each with a
   small picture of its shape:
-  - *Continuous:* Beta, Cumulative, Erlang, Exponential, Gamma, Lognormal,
-    Normal, PERT, Triangular, Uniform, Weibull
-  - *Discrete:* Bernoulli, Binomial, Discrete, Discrete Uniform
+  - *Continuous (30):* Beta, Cauchy, Chi-squared, Cumulative, Erlang,
+    Exponential, F, Gamma, Gumbel, Half-Cauchy, Half-normal, Half-Student t,
+    Inverse chi-squared, Inverse gamma, Inverse Gaussian, Laplace, Logistic,
+    Lognormal, Noncentral beta, Noncentral F, Noncentral t, Normal, Pareto,
+    PERT, Skew normal, Student t, Triangular, Truncated normal, Uniform, Weibull
+  - *Discrete (9):* Benford, Bernoulli, Binomial, Discrete, Discrete Uniform,
+    Geometric, Hypergeometric, Negative Binomial, Poisson
 
-  ![The Discrete group of the same fly-out: Bernoulli, Binomial, Discrete and Discrete Uniform](xl-edge-monte-carlo-discrete.png)
+  ![The Discrete group of the same fly-out: Benford, Bernoulli, Binomial, Discrete, Discrete Uniform, Geometric, Hypergeometric, Negative Binomial and Poisson](xl-edge-monte-carlo-discrete.png)
 
   It prompts for each parameter and writes an ordinary formula such as
   `=fx.RiskPertλ($C$4, $C$5, $C$6, MC_Trials, 7)`. The trial count lives in one
   workbook name (`MC_Trials`), and every input gets its own stream id so the
-  inputs stay independent.
+  inputs stay independent. Optional parameters (a beta's bounds, a truncated
+  normal's limits) can be left out by typing `none`.
 - **Insert Monte Carlo Statistics** — a labelled block of trials, mean,
   standard deviation, min, max and percentiles for a spilled result.
 - **Insert Monte Carlo Histogram Data** — bin centres and counts, ready to chart.
+- **Insert Monte Carlo Risk Measures** — a labelled block of **VaR**, **CVaR**
+  and **Expected Shortfall** for a spilled result, at a confidence level you
+  choose. Trials are read as P&L unless you say they are losses; either way the
+  loss is reported as a positive number.
 - **Install or Update Monte Carlo Library** — pulls the functions from the
   public [gist](https://gist.github.com/wfphillips128/f91bff77212ab2c3d8f55a4f0a51b8b6)
   into the active workbook. Needs an internet connection.
@@ -136,7 +149,7 @@ the ribbon:
   parentheses / sign-flip, convert to absolute or relative references, change
   `SUM` to `SUBTOTAL`, list a formula as text, trim/prefix/suffix text, scale a
   range by 1000 or by a selected value, change case, and more.
-- **Tools** — **create a panel chart** and the **Monte Carlo** items (above),
+- **Tools** — **create a panel chart** and the five **Monte Carlo** items (above),
   speak cell contents, toggle
   gridlines, unmerge & center across,
   copy sheets to a new file without formulas, remove formulas from a
@@ -147,7 +160,7 @@ the ribbon:
 <tr>
 <td width="33%" valign="top"><img src="xl-edge-format-tools.png" alt="The Format Tools menu: number-scale and date toggles, financial formatting presets, font, colour, fill and indent toggles, remove empty rows and columns, and row-height / column-width commands"></td>
 <td width="33%" valign="top"><img src="xl-edge-formula-tools.png" alt="The Formula Tools menu: fill right and down, list formula as text, wrap with ROUND / IFERROR / parentheses / flip sign, absolute and relative refs, SUM to SUBTOTAL, text trim and prefix / suffix, scale by 1000, and case changes"></td>
-<td width="33%" valign="top"><img src="xl-edge-tools.png" alt="The Tools menu: create panel chart, the four Monte Carlo items (insert distribution, insert statistics, insert histogram data, install or update the library), speak cell contents, expand formula bar, toggle grid, unmerge and center across, copy sheets without formulas, remove formulas, shrink file, and jumps to the macro dialog, VBA editor and add-in location"></td>
+<td width="33%" valign="top"><img src="xl-edge-tools.png" alt="The Tools menu: create panel chart, the five Monte Carlo items (insert distribution, insert statistics, insert histogram data, insert risk measures, install or update the library), speak cell contents, expand formula bar, toggle grid, unmerge and center across, copy sheets without formulas, remove formulas, shrink file, and jumps to the macro dialog, VBA editor and add-in location"></td>
 </tr>
 <tr>
 <td align="center"><em>Format Tools</em></td>

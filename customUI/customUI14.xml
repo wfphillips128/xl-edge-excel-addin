@@ -33,7 +33,7 @@
                              <button id="XLEdge52Btn" label="Toggle Fonts Selection" imageMso="FontDialog" onAction="ToggleFonts" screentip="Toggle Fonts Selection" supertip="Scope is the current selection  (Ctrl + Shift + 4)." />
                              <button id="XLEdge54Btn" label="Toggle FontColors" imageMso="FontColorCycle" onAction="ToggleFontColors" screentip="Toggle FontColors" supertip="Scope is the current selection  (Ctrl + Shift + 6)." />
                              <button id="XLEdge55Btn" label="Toggle FillColors" imageMso="CellFillColorPicker" onAction="ToggleFillColors" screentip="Toggle FillColors" supertip="Scope is the current selection  (Ctrl + Shift + 7)." />
-                             <button id="XLEdge56Btn" label="Toggle Indents" imageMso="IndentIncreaseExcel" onAction="ToggleIndents" screentip="Toggle Indents" supertip="Scope is the current selection  (Ctrl + Shift + 8)." />
+                             <button id="XLEdge56Btn" label="Toggle Indents" imageMso="IndentIncreaseExcel" onAction="ToggleIndents" screentip="Toggle Indents" supertip="Scope is the current selection." />
                              <menuSeparator id="Sep02" />
                              <button id="XLEdge61Btn" label="Remove Empty Rows and Cols" imageMso="TableDeleteRowsAndColumnsMenu" onAction="ClearExcessRowsAndColumns" screentip="Remove Empty Rows and Cols" supertip="Deletes every completely blank row and column inside the current selection. Whole sheet rows and columns are removed, so you are asked to confirm first." />
                              <button id="XLEdge62Btn" label="Remove Empty Rows" imageMso="TableDeleteRows" onAction="RemoveEmptyRows" screentip="Remove Empty Rows" supertip="Deletes every completely blank row inside the current selection. Whole sheet rows are removed, so you are asked to confirm first." />
@@ -99,37 +99,65 @@
                             <button id="Panel11Btn" label="Create Panel Chart" imageMso="PivotChartMultiplePlots" onAction="CreatePanelChart" screentip="Create Panel Chart"
                                     supertip="Build a grid of small charts - one chart object, one shared scale, on its own new sheet. Select your data block first to build from it, or run it with nothing selected to get a placeholder block to paste over. Prints on one landscape page." />
                              <menuSeparator id="PanelSep01" /> 
+                             
                              <menu id="McDistMenu" label="Insert Monte Carlo Distribution" image="mcNormal" itemSize="large" screentip="Insert Monte Carlo Distribution"
                                    supertip="Pick a distribution, set its parameters and number of trials, and write the formula at a cell you choose. What it writes is a native LAMBDA call, so the finished workbook keeps calculating for people who do not have XL Edge. Each input is given its own VarID so its trials stay independent of the others.">
                                  <gallery id="McGalCont" label="Continuous" description="Any value in a range: costs, durations, rates, prices."
-                                          image="mcNormal" columns="3" itemWidth="32" itemHeight="32" onAction="McPickDistribution">
+                                          image="mcNormal" columns="5" itemWidth="32" itemHeight="32" onAction="McPickDistribution">
                                      <item id="McD_Beta"        label="Beta"        image="mcBeta"        supertip="Shape1, Shape2, optional lower and upper bounds. Flexible shape on a fixed range." />
+                                     <item id="McD_Cauchy"      label="Cauchy"      image="mcCauchy"      supertip="Location, scale. Extremely heavy tails - no mean or variance." />
+                                     <item id="McD_ChiSq"       label="Chi-squared" image="mcChiSq"       supertip="Degrees of freedom (fractions allowed). Sums of squared normals; variance estimates." />
                                      <item id="McD_Cumulative"  label="Cumulative"  image="mcCumulative"  supertip="Min, Max, and points on the cumulative curve. Use when you have percentile estimates." />
                                      <item id="McD_Erlang"      label="Erlang"      image="mcErlang"      supertip="K (whole number), scale. Waiting time until the Kth event." />
                                      <item id="McD_Exponential" label="Exponential" image="mcExponential" supertip="Mean (not the rate). Time between random events." />
+                                     <item id="McD_F"           label="F"           image="mcF"           supertip="Numerator and denominator degrees of freedom. Ratios of variances." />
                                      <item id="McD_Gamma"       label="Gamma"       image="mcGamma"       supertip="Shape, scale. Positive, right-skewed quantities." />
+                                     <item id="McD_Gumbel"      label="Gumbel"      image="mcExtValue"    supertip="Location, scale. The largest of many values - floods, peak loads, worst days. @RISK's RiskExtValue." />
+                                     <item id="McD_HalfCauchy"  label="Half-Cauchy" image="mcHalfCauchy"  supertip="Scale, optional lower bound. A heavy-tailed positive quantity." />
+                                     <item id="McD_HalfNormal"  label="Half-normal" image="mcHalfNormal"  supertip="Scale, optional lower bound. The size of a normal deviation, ignoring its sign." />
+                                     <item id="McD_HalfStudent" label="Half-Student t" image="mcHalfStudent" supertip="Degrees of freedom, scale, optional lower bound. Like half-normal with heavier tails." />
+                                     <item id="McD_InvChiSq"    label="Inverse chi-squared" image="mcInvChiSq" supertip="Degrees of freedom. The reciprocal of a chi-squared." />
+                                     <item id="McD_InvGamma"    label="Inverse gamma" image="mcInvGamma"  supertip="Shape, scale. The reciprocal of a gamma; @RISK's RiskPearson5." />
+                                     <item id="McD_InvGauss"    label="Inverse Gaussian" image="mcInvGauss" supertip="Mean, shape. Positive and right-skewed; first-passage times. Also called Wald." />
+                                     <item id="McD_Laplace"     label="Laplace"     image="mcLaplace"     supertip="Location, scale (not the standard deviation). A sharp peak with exponential tails." />
+                                     <item id="McD_Logistic"    label="Logistic"    image="mcLogistic"    supertip="Location, scale (not the standard deviation). Like the normal with slightly heavier tails." />
                                      <item id="McD_Lognormal"   label="Lognormal"   image="mcLognormal"   supertip="Mean and standard deviation of ln(X). Positive values with a long right tail." />
+                                     <item id="McD_NCBeta"      label="Noncentral beta" image="mcNCBeta"  supertip="Shape1, Shape2, noncentrality. A beta pushed towards 1." />
+                                     <item id="McD_NCF"         label="Noncentral F" image="mcNCF"        supertip="Numerator and denominator degrees of freedom, noncentrality. Power calculations for F tests." />
+                                     <item id="McD_NCStudent"   label="Noncentral t" image="mcNCStudent"  supertip="Degrees of freedom, noncentrality. Power calculations for t tests." />
                                      <item id="McD_Normal"      label="Normal"      image="mcNormal"      supertip="Mean, standard deviation. The symmetric bell curve." />
+                                     <item id="McD_Pareto"      label="Pareto"      image="mcPareto"      supertip="Shape first, then scale (the minimum). Power-law tails - losses, incomes, file sizes." />
                                      <item id="McD_Pert"        label="PERT"        image="mcPert"        supertip="Min, most likely, max. A smooth three-point estimate." />
+                                     <item id="McD_SkewNormal"  label="Skew normal" image="mcSkewNormal"  supertip="Location, scale, shape. A normal with adjustable skew; shape 0 is the normal." />
+                                     <item id="McD_Student"     label="Student t"   image="mcStudent"     supertip="Degrees of freedom (fractions allowed). Centred on 0, heavier tails than the normal." />
                                      <item id="McD_Triangular"  label="Triangular"  image="mcTriangular"  supertip="Min, most likely, max. A straight-edged three-point estimate." />
+                                     <item id="McD_TruncNormal" label="Truncated normal" image="mcTruncNormal" supertip="Mean, standard deviation, optional lower and upper bounds. A normal confined to a range." />
                                      <item id="McD_Uniform"     label="Uniform"     image="mcUniform"     supertip="Min, max. Every value in the range equally likely." />
                                      <item id="McD_Weibull"     label="Weibull"     image="mcWeibull"     supertip="Shape, scale. Lifetimes and failure times." />
                                  </gallery>
                                  <gallery id="McGalDisc" label="Discrete" description="Countable outcomes: events, counts, scenarios."
-                                          image="mcDiscrete" columns="2" itemWidth="32" itemHeight="32" onAction="McPickDistribution">
+                                          image="mcDiscrete" columns="3" itemWidth="32" itemHeight="32" onAction="McPickDistribution">
+                                     <item id="McD_Benford"     label="Benford"          image="mcBenford"   supertip="Optional number of digits. Leading digits of naturally occurring numbers - fraud and data-quality tests." />
                                      <item id="McD_Bernoulli"   label="Bernoulli"        image="mcBernoulli" supertip="P. Returns 1 with probability P, otherwise 0 - does the event happen?" />
                                      <item id="McD_Binomial"    label="Binomial"         image="mcBinomial"  supertip="N, P. Number of successes in N independent tries." />
                                      <item id="McD_Discrete"    label="Discrete"         image="mcDiscrete"  supertip="A list of values and their probabilities, which must sum to 1." />
                                      <item id="McD_DUniform"    label="Discrete Uniform" image="mcDUniform"  supertip="A list of values, each equally likely." />
+                                     <item id="McD_Geometric"   label="Geometric"        image="mcGeomet"    supertip="P. Failures before the first success (0, 1, 2 ...)." />
+                                     <item id="McD_Hypergeo"    label="Hypergeometric"   image="mcHypergeo"  supertip="Draws, successes in the population, population size. Sampling without replacement - audit samples." />
+                                     <item id="McD_Negbin"      label="Negative Binomial" image="mcNegbin"   supertip="Successes, P. Failures before the s-th success (Pascal)." />
+                                     <item id="McD_Poisson"     label="Poisson"          image="mcPoisson"   supertip="Mean. Number of events in a fixed interval - claims, arrivals, defects." />
                                  </gallery>
                              </menu>
                              <button id="McStatsBtn" label="Insert Monte Carlo Statistics" imageMso="AutoSum" onAction="McInsertStats" screentip="Insert Monte Carlo Statistics"
                                      supertip="Write a summary block - trials, mean, standard deviation, minimum, maximum and percentiles - for a spilled range of simulated values. Select the spilled range first, or the cell it spills from." />
                              <button id="McHistBtn" label="Insert Monte Carlo Histogram Data" imageMso="ChartInsert" onAction="McInsertHistogram" screentip="Insert Monte Carlo Histogram Data"
                                      supertip="Write bin centres and counts for a spilled range of simulated values, ready to chart. Select the spilled range first, or the cell it spills from." />
+                             <button id="McRiskBtn" label="Insert Monte Carlo Risk Measures" imageMso="WhatIfAnalysisMenu" onAction="McInsertRiskMeasures" screentip="Insert Monte Carlo Risk Measures"
+                                     supertip="Write Value at Risk, Conditional Value at Risk and Expected Shortfall for a spilled range of simulated values, at a confidence level you choose. Losses are reported as positive numbers. Select the spilled range first, or the cell it spills from." />
                              <button id="McLibBtn" label="Install or Update Monte Carlo Library" imageMso="TableInsert" onAction="McInstallLibrary" screentip="Install or Update Monte Carlo Library"
                                      supertip="Add the Monte Carlo LAMBDA functions to the active workbook, or refresh them to the current version. Inserting a distribution does this for you automatically; run it on its own to install the library without inserting anything." />
                              <menuSeparator id="McSep01" />
+                             
                              <button id="T13Btn" label="Speak Cell Contents" imageMso="SpeakCells" onAction="SpeakCellContents" screentip="Speak Cell Contents" supertip="Have Excel speak the contents of selected range." /> 
                              <button id="T21Btn" label="Expand and Collapse Formula Bar" imageMso="MenuExpandCollapse" onAction="ToggleFormulaBar" screentip="Expand and Collapse Formula Bar" supertip="Tool to expand and collapse the formula bar (Ctrl + Shift + U)." /> 
                              <button id="T22Btn" label="Toggle Grid" imageMso="TableShowGridlines" onAction="ToggleGrid" screentip="Toggle Grid" supertip="Tool to turn Excel's gridlines on and off." />                               

@@ -21,7 +21,7 @@ Option Explicit
 '  EDIT THIS when you ship a new build.
 ' ----------------------------------------------------------------------------
 Public Const XLEDGE_NAME    As String = "XL Edge"
-Public Const XLEDGE_VERSION As String = "2.03"
+Public Const XLEDGE_VERSION As String = "2.1"
 
 ' ============================================================================
 '  Ribbon entry point

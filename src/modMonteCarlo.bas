@@ -65,6 +65,10 @@ End Function
 ' parameter that comes BEFORE Trials is listed too - Beta's bounds, for example.
 ' Skipping one would shift Trials into the wrong position.
 '
+' A leading "?" marks a parameter as optional: the prompt says so, and typing
+' "none" leaves it out of the formula (McIsNone), so the LAMBDA's own default
+' applies. The "?" is never shown to the user.
+'
 ' The ribbon item id must match an <item id="..."> in the Continuous or
 ' Discrete gallery of ribbon - Monte Carlo menu items.xml. That is how a click
 ' on an icon finds its way back to this list.
@@ -80,7 +84,7 @@ Public Function McCatalog() As Collection
     c.Add Array("Lognormal", "fx.RiskLogNorm", "Mean of ln(X)|Standard deviation of ln(X)", "McD_Lognormal")
     c.Add Array("Triangular", "fx.RiskTriang", "Min|Most likely|Max", "McD_Triangular")
     c.Add Array("PERT", "fx.RiskPert", "Min|Most likely|Max", "McD_Pert")
-    c.Add Array("Beta", "fx.RiskBeta", "Shape1 (alpha)|Shape2 (beta)|Lower bound|Upper bound", "McD_Beta")
+    c.Add Array("Beta", "fx.RiskBeta", "Shape1 (alpha)|Shape2 (beta)|?Lower bound (default 0)|?Upper bound (default 1)", "McD_Beta")
     c.Add Array("Gamma", "fx.RiskGamma", "Alpha (shape)|Beta (scale)", "McD_Gamma")
     c.Add Array("Erlang", "fx.RiskErlang", "K (whole number)|Beta (scale)", "McD_Erlang")
     c.Add Array("Exponential", "fx.RiskExpon", "Mean (not the rate)", "McD_Exponential")
@@ -90,6 +94,34 @@ Public Function McCatalog() As Collection
     c.Add Array("Discrete", "fx.RiskDiscrete", "Values|Probabilities (must sum to 1)", "McD_Discrete")
     c.Add Array("Discrete uniform", "fx.RiskDUniform", "Values", "McD_DUniform")
     c.Add Array("Cumulative", "fx.RiskCumul", "Lowest value|Highest value|X values|Y probabilities", "McD_Cumulative")
+
+    ' v0.3 continuous
+    c.Add Array("Cauchy", "fx.RiskCauchy", "Location (median)|Scale", "McD_Cauchy")
+    c.Add Array("Chi-squared", "fx.RiskChiSq", "Degrees of freedom", "McD_ChiSq")
+    c.Add Array("F", "fx.RiskF", "Numerator degrees of freedom|Denominator degrees of freedom", "McD_F")
+    c.Add Array("Gumbel", "fx.RiskExtValue", "Location (mode)|Scale", "McD_Gumbel")
+    c.Add Array("Half-Cauchy", "fx.RiskHalfCauchy", "Scale|?Location (lower bound, default 0)", "McD_HalfCauchy")
+    c.Add Array("Half-normal", "fx.RiskHalfNormal", "Scale|?Location (lower bound, default 0)", "McD_HalfNormal")
+    c.Add Array("Half-Student t", "fx.RiskHalfStudent", "Degrees of freedom|Scale|?Location (lower bound, default 0)", "McD_HalfStudent")
+    c.Add Array("Inverse chi-squared", "fx.RiskInvChiSq", "Degrees of freedom", "McD_InvChiSq")
+    c.Add Array("Inverse gamma", "fx.RiskInvGamma", "Alpha (shape)|Beta (scale)", "McD_InvGamma")
+    c.Add Array("Inverse Gaussian", "fx.RiskInvGauss", "Mean|Shape (lambda)", "McD_InvGauss")
+    c.Add Array("Laplace", "fx.RiskLaplace", "Location|Scale (not the standard deviation)", "McD_Laplace")
+    c.Add Array("Logistic", "fx.RiskLogistic", "Location|Scale (not the standard deviation)", "McD_Logistic")
+    c.Add Array("Noncentral beta", "fx.RiskNCBeta", "Shape1|Shape2|Noncentrality", "McD_NCBeta")
+    c.Add Array("Noncentral F", "fx.RiskNCF", "Numerator degrees of freedom|Denominator degrees of freedom|Noncentrality", "McD_NCF")
+    c.Add Array("Noncentral t", "fx.RiskNCStudent", "Degrees of freedom|Noncentrality", "McD_NCStudent")
+    c.Add Array("Pareto", "fx.RiskPareto", "Theta (shape)|A (scale - the minimum)", "McD_Pareto")
+    c.Add Array("Skew normal", "fx.RiskSkewNormal", "Location|Scale|Shape (skewness; 0 = normal)", "McD_SkewNormal")
+    c.Add Array("Student t", "fx.RiskStudent", "Degrees of freedom", "McD_Student")
+    c.Add Array("Truncated normal", "fx.RiskTruncNormal", "Mean|Standard deviation|?Lower bound|?Upper bound", "McD_TruncNormal")
+
+    ' v0.3 discrete
+    c.Add Array("Benford", "fx.RiskBenford", "?Digits (1 = first digit, 2 = first two)", "McD_Benford")
+    c.Add Array("Geometric", "fx.RiskGeomet", "P (counts failures before the first success)", "McD_Geometric")
+    c.Add Array("Hypergeometric", "fx.RiskHypergeo", "Draws (n)|Successes in the population (D)|Population size (M)", "McD_Hypergeo")
+    c.Add Array("Negative binomial", "fx.RiskNegbin", "Successes (s)|P (counts failures before the s-th success)", "McD_Negbin")
+    c.Add Array("Poisson", "fx.RiskPoisson", "Mean", "McD_Poisson")
 
     Set mCatalog = c
     Set McCatalog = c
@@ -257,6 +289,43 @@ Public Function McArgText(ByVal raw As String) As String
     s = Trim$(raw)
     If Left$(s, 1) = "=" Then s = Mid$(s, 2)
     McArgText = Trim$(s)
+End Function
+
+' A catalogue parameter beginning "?" is optional. These split that marker off.
+Public Function McParamIsOptional(ByVal param As String) As Boolean
+    McParamIsOptional = (Left$(param, 1) = "?")
+End Function
+
+Public Function McParamLabel(ByVal param As String) As String
+    If McParamIsOptional(param) Then McParamLabel = Mid$(param, 2) Else McParamLabel = param
+End Function
+
+' True when the user typed "none" for an optional parameter. InputBox Type:=0
+' may hand it back as none, =none or ="none", so all three are accepted.
+Public Function McIsNone(ByVal argText As String) As Boolean
+    McIsNone = (LCase$(Replace(McArgText(argText), """", "")) = "none")
+End Function
+
+' A labelled VaR / CVaR / ES block for a spilled range of trials:
+'
+'   =LET(tr, A2#, cl, 0.95, VSTACK(HSTACK("Confidence", cl),
+'        HSTACK("VaR", fx.RiskVaR<lambda>(tr, cl)), ... ))
+'
+' LET names avoid anything that reads as a cell reference; "c" alone would be
+' refused, because Excel takes it as R1C1 notation for a column.
+Public Function McBuildRiskBlock(ByVal ref As String, ByVal confidence As Double, _
+                                 ByVal lossesPositive As Boolean) As String
+    Dim tail As String, conf As String
+
+    conf = Trim$(Str$(confidence))          ' Str$ always uses a "." decimal point
+    If Left$(conf, 1) = "." Then conf = "0" & conf
+    tail = IIf(lossesPositive, ", TRUE", "")
+
+    McBuildRiskBlock = "=LET(tr, " & ref & ", cl, " & conf & ", VSTACK(" & _
+        "HSTACK(""Confidence"", cl), " & _
+        "HSTACK(""VaR"", " & McFunctionName("fx.RiskVaR") & "(tr, cl" & tail & ")), " & _
+        "HSTACK(""CVaR"", " & McFunctionName("fx.RiskCVaR") & "(tr, cl" & tail & ")), " & _
+        "HSTACK(""ES"", " & McFunctionName("fx.RiskES") & "(tr, cl" & tail & "))))"
 End Function
 
 Public Function McBuildCall(ByVal baseName As String, ByVal args As Variant, _

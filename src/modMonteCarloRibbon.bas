@@ -1,6 +1,6 @@
 Attribute VB_Name = "modMonteCarloRibbon"
 ' =============================================================================
-' modMonteCarloRibbon - the four Monte Carlo buttons on the Tools menu.
+' modMonteCarloRibbon - the five Monte Carlo buttons on the Tools menu.
 '
 ' UI ONLY. Every MsgBox and InputBox in this feature is here; every decision it
 ' makes is in modMonteCarlo, which can be exercised without a dialog appearing.
@@ -18,6 +18,7 @@ Attribute VB_Name = "modMonteCarloRibbon"
 '   McGalDisc   -> McPickDistribution   (Discrete gallery)
 '   McStatsBtn  -> McInsertStats
 '   McHistBtn   -> McInsertHistogram
+'   McRiskBtn   -> McInsertRiskMeasures
 '   McLibBtn    -> McInstallLibrary
 ' =============================================================================
 Option Explicit
@@ -49,6 +50,76 @@ End Sub
 Public Sub McInsertHistogram(control As IRibbonControl)
     InsertFromSelection "fx.RiskHist", _
         "Select the simulated values first - any cell of the spilled result will do."
+End Sub
+
+' VaR, CVaR and ES as one labelled block. Asks for the confidence level and
+' for which way round the trials are, since both change the answer.
+Public Sub McInsertRiskMeasures(control As IRibbonControl)
+    Dim wb As Workbook
+    Dim source As Range, target As Range
+    Dim ref As String, formulaText As String, answer As String
+    Dim conf As Double
+    Dim lossesPositive As Boolean
+    Dim added As Long
+    Dim sign As VbMsgBoxResult
+
+    On Error GoTo Oops
+    If Not HaveWorkbook(wb) Then Exit Sub
+
+    If Not modXLEdgeHelpers.GetSelectionRange(source, True, DIALOG_TITLE) Then Exit Sub
+    If source Is Nothing Then
+        Warn "Select the simulated values first - any cell of the spilled result will do."
+        Exit Sub
+    End If
+
+    answer = AskText("Confidence level, between 0 and 1?", "0.95")
+    If Len(answer) = 0 Then Exit Sub
+    If Not IsNumeric(answer) Then
+        Warn "The confidence level must be a number between 0 and 1, such as 0.95."
+        Exit Sub
+    End If
+    conf = CDbl(answer)
+    If conf <= 0 Or conf >= 1 Then
+        Warn "The confidence level must be between 0 and 1, such as 0.95 or 0.99."
+        Exit Sub
+    End If
+
+    sign = MsgBox("Are these trials profit and loss - gains positive, losses negative?" & vbCrLf & vbCrLf & _
+                  "Yes:  P&L. The loss tail is the low end." & vbCrLf & _
+                  "No:   loss amounts. The loss tail is the high end." & vbCrLf & vbCrLf & _
+                  "Either way the results are reported as positive losses.", _
+                  vbYesNoCancel + vbQuestion, DIALOG_TITLE)
+    If sign = vbCancel Then Exit Sub
+    lossesPositive = (sign = vbNo)
+
+    Set target = AskTarget("Where should the result go?" & vbCrLf & vbCrLf & _
+                           "It is a two-column block, four rows deep.")
+    If target Is Nothing Then Exit Sub
+    If Not TargetIsClear(target) Then Exit Sub
+
+    ref = modMonteCarlo.McSpillReference(source, target)
+    If Len(ref) = 0 Then
+        Warn "Select the simulated values first - any cell of the spilled result will do."
+        Exit Sub
+    End If
+
+    AppStateManager.FastModeOn
+    If Not modMonteCarlo.McEnsureLibrary(wb, added) Then
+        AppStateManager.FastModeOff
+        Warn "The Monte Carlo functions could not be added to this workbook."
+        Exit Sub
+    End If
+    formulaText = modMonteCarlo.McBuildRiskBlock(ref, conf, lossesPositive)
+    modMonteCarlo.McWriteFormula target, formulaText
+    AppStateManager.FastModeOff
+
+    MsgBox "Written to " & target.Cells(1, 1).Address(False, False) & ":" & vbCrLf & vbCrLf & _
+           formulaText, vbInformation, DIALOG_TITLE
+    Exit Sub
+
+Oops:
+    AppStateManager.FastModeOff
+    ShowError
 End Sub
 
 Public Sub McInstallLibrary(control As IRibbonControl)
@@ -111,6 +182,9 @@ Private Sub InsertDistribution(ByVal idx As Long)
     For i = LBound(params) To UBound(params)
         one = AskArgument(CStr(entry(0)), params(i), i + 1, UBound(params) + 1)
         If Len(one) = 0 Then Exit Sub
+        ' An empty argument - "fx.RiskBetaλ(2, 3, , , ...)" - is how a LAMBDA
+        ' sees an optional parameter as omitted.
+        If modMonteCarlo.McParamIsOptional(params(i)) And modMonteCarlo.McIsNone(one) Then one = ""
         args(i) = one
     Next i
 
@@ -217,8 +291,10 @@ Private Function AskArgument(ByVal distName As String, ByVal paramName As String
     On Error Resume Next
     v = Application.InputBox( _
             prompt:=distName & vbCrLf & vbCrLf & _
-                    paramName & "   (" & n & " of " & total & ")" & vbCrLf & vbCrLf & _
-                    "Type a value, or click a cell to reference it.", _
+                    modMonteCarlo.McParamLabel(paramName) & "   (" & n & " of " & total & ")" & vbCrLf & vbCrLf & _
+                    "Type a value, or click a cell to reference it." & _
+                    IIf(modMonteCarlo.McParamIsOptional(paramName), _
+                        vbCrLf & "Optional: type none to leave it out.", ""), _
             title:=DIALOG_TITLE, Type:=0)
     On Error GoTo 0
 
