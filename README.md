@@ -4,7 +4,7 @@ An Excel add-in that puts a **library of custom LAMBDA functions in the ribbon**
 stored, searchable, described, and shareable — alongside a deep set of
 productivity macros built up over years of finance and reporting work.
 
-Free to use and free to modify. MIT licensed. No sign-up, no trial, no telemetry.
+Free to use and free to modify. MIT licensed. No sign-up, no trial, no marketing emails.
 
 ![The XL Edge tab in the Excel ribbon: a Productivity Tools group, Format/Formula/Tools menus, a LAMBDA Studio group with a filter box and two dropdowns, and a Settings group](xl-edge-tab.png)
 
@@ -16,7 +16,7 @@ Free to use and free to modify. MIT licensed. No sign-up, no trial, no telemetry
 > Mac or web build.
 
 **Overview in PDF:** a 9-page [brochure](docs/XL-Edge-brochure.pdf) (US Letter,
-for printing or email) and a 14-page [carousel](docs/XL-Edge-carousel.pdf)
+for printing or email) and a 12-page [carousel](docs/XL-Edge-carousel.pdf)
 (the LinkedIn version).
 
 ---
