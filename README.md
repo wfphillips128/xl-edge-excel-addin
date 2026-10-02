@@ -12,11 +12,11 @@ Free to use and free to modify. MIT licensed. No sign-up, no trial, no telemetry
 >
 > Windows Excel with macro (VBA) support — desktop Excel 2016 or later, or a
 > Microsoft 365 build. LAMBDA authoring itself needs a version of Excel that has
-> `LAMBDA` (Microsoft 365 / Excel 2021+). This is a `.xlam` add-in; there is no
+> `LAMBDA` (Microsoft 365 / Excel 2024). This is a `.xlam` add-in; there is no
 > Mac or web build.
 
-**Overview in PDF:** an 8-page [brochure](docs/XL-Edge-brochure.pdf) (US Letter,
-for printing or email) and a 13-page [carousel](docs/XL-Edge-carousel.pdf)
+**Overview in PDF:** a 9-page [brochure](docs/XL-Edge-brochure.pdf) (US Letter,
+for printing or email) and a 14-page [carousel](docs/XL-Edge-carousel.pdf)
 (the LinkedIn version).
 
 ---
@@ -60,6 +60,11 @@ LAMBDA Studio replaces that with a real library:
 - **Round-trip with the active file** — import a LAMBDA (or all of them) from the
   workbook you're in back into the library.
 
+The library ships with **five** LAMBDAs to start — `fxZScore`, `fxZOutlier`,
+`fxZOutlierHigh`, `fxZOutlierLow` and `fxSlicerSelection` — and the rest is
+yours to fill. (Before 2.21 it also carried the 56 Monte Carlo functions; those
+now ship separately, below, and install only where they are used.)
+
 Under the hood every operation is normalised to a single shape —
 `(name, formula, description)` — so each menu item is just a *source* paired with
 a *sink*. Adding a new source later (a different site, a database) is one
@@ -84,20 +89,25 @@ miniature copy of the same scale, which is what makes the panels comparable.
 Line and bar orientations, and a self-check (`PanelSelfCheck`) that exercises
 the geometry with every workbook closed.
 
-### Monte Carlo Distributions
+### Monte Carlo
 
 Five items on the **Tools** menu, directly under Create Panel Chart, put Monte
-Carlo simulation into a workbook as **native LAMBDA formulas** — modern
-versions of the distribution functions in tools such as XLRisk and @RISK.
+Carlo simulation into a workbook as **native LAMBDA formulas**, from the inputs
+through to a finished chart. The functions are modern versions of the
+distribution functions in tools such as XLRisk and @RISK.
 
-> **New in 2.1:** 24 more distributions (39 in all) and **Insert Monte Carlo
-> Risk Measures** for Value at Risk, Conditional Value at Risk and Expected
-> Shortfall. The library behind them is now v0.3.0.
+> **New in 2.21:** **copulas** for correlated inputs, **native Excel charts**
+> (histogram + S-curve, P10 / P50 / P90 outcome histogram, tornado), and
+> **statistics for several variables at once**. The library is now **v0.6.0
+> (79 functions)**, and it **ships inside the add-in**: each command installs
+> only the functions it needs into the workbook, offline. See the
+> [changelog](CHANGELOG.md), which also lists the breaking changes to the
+> statistics blocks.
 
 ![The Tools menu open on Insert Monte Carlo Distribution, with the Continuous fly-out showing a grid of thirty distributions from beta and Cauchy to truncated normal, uniform and Weibull](xl-edge-monte-carlo.png)
 
-- **Insert Monte Carlo Distribution** — pick from 39 distributions, each with a
-  small picture of its shape:
+- **Insert Monte Carlo Distribution ▸** — pick from 39 distributions, each with
+  a small picture of its shape:
   - *Continuous (30):* Beta, Cauchy, Chi-squared, Cumulative, Erlang,
     Exponential, F, Gamma, Gumbel, Half-Cauchy, Half-normal, Half-Student t,
     Inverse chi-squared, Inverse gamma, Inverse Gaussian, Laplace, Logistic,
@@ -113,16 +123,53 @@ versions of the distribution functions in tools such as XLRisk and @RISK.
   workbook name (`MC_Trials`), and every input gets its own stream id so the
   inputs stay independent. Optional parameters (a beta's bounds, a truncated
   normal's limits) can be left out by typing `none`.
-- **Insert Monte Carlo Statistics** — a labelled block of trials, mean,
-  standard deviation, min, max and percentiles for a spilled result.
-- **Insert Monte Carlo Histogram Data** — bin centres and counts, ready to chart.
-- **Insert Monte Carlo Risk Measures** — a labelled block of **VaR**, **CVaR**
-  and **Expected Shortfall** for a spilled result, at a confidence level you
-  choose. Trials are read as P&L unless you say they are losses; either way the
-  loss is reported as a positive number.
-- **Install or Update Monte Carlo Library** — pulls the functions from the
-  public [gist](https://gist.github.com/wfphillips128/f91bff77212ab2c3d8f55a4f0a51b8b6)
-  into the active workbook. Needs an internet connection.
+
+- **Insert Monte Carlo Copula ▸** — a block of **correlated uniforms**, one
+  column per input. Feed one column into each distribution's `Trials` argument
+  and the inputs move together while each keeps its own distribution:
+  Gaussian, Student t, Clayton (joint crashes), Gumbel (joint booms) and Frank,
+  plus Clayton and Frank with **negative dependence** for two inputs.
+
+  ![The Insert Monte Carlo Copula fly-out: Gaussian (Normal), Student t, Clayton, Gumbel and Frank, then Clayton and Frank under Negative dependence (2 variables)](xl-edge-monte-carlo-copula.png)
+
+- **Insert Monte Carlo Statistics ▸** — for a selected spilled result:
+  - **Statistics** (12 × 2) or **Detailed Statistics** (33 × 2), named and
+    ordered like the Analysis ToolPak, with the variable's name on top;
+  - **Variables Table** and **Variables Table (Detailed)** — the same for
+    several results at once, one column each;
+  - **Histogram Data** — bin centres and counts;
+  - **Risk Measures** — **VaR**, **CVaR** and **Expected Shortfall** at a
+    confidence level you choose. Trials are read as P&L unless you say they are
+    losses; either way the loss is reported as a positive number.
+
+- **Insert Monte Carlo Chart ▸** — writes the chart data and draws a **native
+  Excel chart** from it, with the title linked to a cell, so it redraws when the
+  model, seed or bin count changes: **Histogram + S-Curve**, **Outcome
+  Histogram (P10 / P50 / P90)** and **Tornado (Sensitivity)** (select the output
+  first, then Ctrl-click each input).
+
+  <table>
+  <tr>
+  <td width="33%" valign="top"><img src="mc-chart-s-curve.png" alt="A histogram of simulated gross profit with an orange S-curve rising from 0% to 100%"></td>
+  <td width="33%" valign="top"><img src="mc-chart-outcome-histogram.png" alt="An outcome histogram with the central bars between P10 174.2 and P90 706.1 in orange and dashed lines at P10, P50 395.5 and P90"></td>
+  <td width="33%" valign="top"><img src="mc-chart-tornado.png" alt="A tornado chart: volume moves gross profit most, then price, then cost"></td>
+  </tr>
+  <tr>
+  <td align="center"><em>Histogram + S-Curve</em></td>
+  <td align="center"><em>Outcome Histogram</em></td>
+  <td align="center"><em>Tornado</em></td>
+  </tr>
+  </table>
+
+  *Illustrative charts from synthetic inputs: a gross profit model of price,
+  volume and cost. In the tornado, grey is an input in its lowest 10% of trials
+  and orange its highest; cost runs the other way because higher cost lowers
+  profit.*
+
+- **Install or Update Monte Carlo Library** — installs from the copy **bundled
+  in the add-in** (no internet needed): **Yes** installs what the workbook's
+  formulas use, **No** installs the full library. You rarely need it, because
+  every command above installs what it uses as it goes.
 
 Each distribution is a **non-volatile dynamic array**: one cell spills every
 trial, and the trials do not reshuffle when something unrelated recalculates,
@@ -131,7 +178,10 @@ because the randomness is keyed to a seed rather than to `RAND`. The add-in only
 workbook — so a finished model keeps calculating for people who have never
 installed XL Edge.
 
-The full function reference, conventions and attribution are on the
+The library is also published on its own as a public
+[gist](https://gist.github.com/wfphillips128/f91bff77212ab2c3d8f55a4f0a51b8b6)
+for anyone without the add-in. The full function reference, conventions and
+attribution are on the
 [project page](https://edgewisedata.com/projects/monte-carlo-lambdas).
 
 ### Productivity Tools
@@ -149,7 +199,8 @@ the ribbon:
   parentheses / sign-flip, convert to absolute or relative references, change
   `SUM` to `SUBTOTAL`, list a formula as text, trim/prefix/suffix text, scale a
   range by 1000 or by a selected value, change case, and more.
-- **Tools** — **create a panel chart** and the five **Monte Carlo** items (above),
+- **Tools** — **create a panel chart** and the five **Monte Carlo** items (above:
+  distribution, copula, statistics, chart, install/update),
   speak cell contents, toggle
   gridlines, unmerge & center across,
   copy sheets to a new file without formulas, remove formulas from a
@@ -160,7 +211,7 @@ the ribbon:
 <tr>
 <td width="33%" valign="top"><img src="xl-edge-format-tools.png" alt="The Format Tools menu: number-scale and date toggles, financial formatting presets, font, colour, fill and indent toggles, remove empty rows and columns, and row-height / column-width commands"></td>
 <td width="33%" valign="top"><img src="xl-edge-formula-tools.png" alt="The Formula Tools menu: fill right and down, list formula as text, wrap with ROUND / IFERROR / parentheses / flip sign, absolute and relative refs, SUM to SUBTOTAL, text trim and prefix / suffix, scale by 1000, and case changes"></td>
-<td width="33%" valign="top"><img src="xl-edge-tools.png" alt="The Tools menu: create panel chart, the five Monte Carlo items (insert distribution, insert statistics, insert histogram data, insert risk measures, install or update the library), speak cell contents, expand formula bar, toggle grid, unmerge and center across, copy sheets without formulas, remove formulas, shrink file, and jumps to the macro dialog, VBA editor and add-in location"></td>
+<td width="33%" valign="top"><img src="xl-edge-tools.png" alt="The Tools menu: create panel chart, the five Monte Carlo items (insert distribution, copula, statistics or chart, each a fly-out, and install or update the library), speak cell contents, expand formula bar, toggle grid, unmerge and center across, copy sheets without formulas, remove formulas, shrink file, and jumps to the macro dialog, VBA editor and add-in location"></td>
 </tr>
 <tr>
 <td align="center"><em>Format Tools</em></td>
@@ -179,7 +230,7 @@ defaults are yours to change without touching code.
 
 ## Source
 
-All 21 VBA modules are exported to [`src/`](src/) so the code is browsable
+All 23 VBA components are exported to [`src/`](src/) so the code is browsable
 without opening Excel. The ribbon definition is in
 [`customUI/customUI14.xml`](customUI/customUI14.xml).
 

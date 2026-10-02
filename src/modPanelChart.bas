@@ -74,7 +74,7 @@ Public Function PanelDrawChart(ByVal ws As Worksheet, ByRef sp As TPanelSpec, _
     ' Nothing downstream expects a series it did not add: an extra one breaks
     ' the legend-entry arithmetic and the verify count. The Python never sees
     ' this because it builds into a workbook it created.
-    Do While ch.SeriesCollection.Count > 0
+    Do While ch.SeriesCollection.count > 0
         ch.SeriesCollection(1).Delete
     Loop
 
@@ -129,7 +129,7 @@ Public Function PanelDrawChart(ByVal ws As Worksheet, ByRef sp As TPanelSpec, _
         ser.Format.Line.Visible = msoFalse
     End If
 
-    For g = 1 To ch.ChartGroups.Count
+    For g = 1 To ch.ChartGroups.count
         On Error Resume Next
         If PS_StacksElements(sp) Then
             ch.ChartGroups(g).GapWidth = 0
@@ -269,7 +269,7 @@ Private Sub AddPinSeries(ByVal ws As Worksheet, ByRef sp As TPanelSpec, _
     ' A full external A1 reference. R1C1 is not accepted here, and the sheet
     ' name has its own apostrophes doubled so a sheet renamed to "Bob's panel"
     ' still resolves.
-    addr = "='" & SheetRef(ws) & "'!" & PlotCol(ws, ly, ecol).Address(True, True)
+    addr = "='" & sheetRef(ws) & "'!" & PlotCol(ws, ly, ecol).Address(True, True)
 
     If tone = 0 Then
         include = xlErrorBarIncludeMinusValues
@@ -392,7 +392,7 @@ Private Sub LabelPoints(ByVal ws As Worksheet, ByRef sp As TPanelSpec, _
                         If Not pt Is Nothing Then
                             pt.HasDataLabel = True
                             Set dl = pt.DataLabel
-                            dl.formula = "='" & SheetRef(ws) & "'!" & _
+                            dl.formula = "='" & sheetRef(ws) & "'!" & _
                                 ws.Cells(ly.ptR0 + idx - 1, lcol).Address(True, True)
                             If CDbl(v) >= 0 Then
                                 dl.Position = xlLabelPositionAbove
@@ -541,7 +541,7 @@ Private Sub EmitAnnotation(ByVal ws As Worksheet, ByRef sp As TPanelSpec, _
                     Else
                         pt.HasDataLabel = True
                         Set dl = pt.DataLabel
-                        dl.formula = "='" & SheetRef(ws) & "'!" & _
+                        dl.formula = "='" & sheetRef(ws) & "'!" & _
                             ws.Cells(an.r0 + offset + i, an.labCol).Address(True, True)
                         dl.Position = labelPos
                         dl.Font.Size = labelSize
@@ -665,7 +665,7 @@ Private Sub SetLegend(ByVal ch As Chart, ByRef sp As TPanelSpec)
 
     ' IN REVERSE. Deleting forwards shifts the indices under you and takes out
     ' the wrong entries.
-    For i = ch.Legend.LegendEntries.Count To 1 Step -1
+    For i = ch.Legend.LegendEntries.count To 1 Step -1
         If i < first Or i > last Then
             On Error Resume Next
             ch.Legend.LegendEntries(i).Delete
@@ -738,7 +738,7 @@ Public Function PanelVerify(ByVal ws As Worksheet, ByRef sp As TPanelSpec, _
 
     want = PS_NSeries(sp) + mAnnotationSeries
     If PS_StacksElements(sp) Then want = want + 1
-    got = ch.SeriesCollection.Count
+    got = ch.SeriesCollection.count
     If got <> want Then
         problems = Add(problems, "series count " & got & ", expected " & want)
     End If
@@ -749,7 +749,7 @@ Public Function PanelVerify(ByVal ws As Worksheet, ByRef sp As TPanelSpec, _
         Set ser = ch.SeriesCollection(i)
         n = -1
         On Error Resume Next
-        n = ser.Points.Count
+        n = ser.Points.count
         Err.Clear
         On Error GoTo 0
         If n > PS_NSlots(sp) Then

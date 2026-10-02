@@ -41,7 +41,7 @@ Public Function GetSelectionRange(ByRef rg As Range, _
     Set rg = Application.Selection
 
     If singleAreaOnly Then
-        If rg.Areas.Count > 1 Then
+        If rg.Areas.count > 1 Then
             MsgBox "Please select a single block of cells." & vbCrLf & vbCrLf & _
                    "This tool works out what to do from the shape of the selection, " & _
                    "so it cannot run across several separate blocks.", _
@@ -119,7 +119,7 @@ Public Sub ConvertFormulasToValues(ByVal rg As Range, _
             areasFailed = areasFailed + 1
             Err.Clear
         Else
-            cellsDone = cellsDone + ar.Cells.Count
+            cellsDone = cellsDone + ar.Cells.count
         End If
         On Error GoTo 0
     Next ar

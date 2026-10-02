@@ -573,7 +573,7 @@ Private Sub WriteAnnotations(ByVal ws As Worksheet, ByRef sp As TPanelSpec, _
             valV = "=" & bnd & "+" & Par(ly, PR_BANDFRAC) & "+0.03"
         End If
         AnnPut sp, xs, ys, labs, n, catV, valV, _
-               "='" & SheetRef(ws) & "'!" & _
+               "='" & sheetRef(ws) & "'!" & _
                "$A$" & (ly.inR0 + p)
     Next p
     AnnEmit ws, ly, anns, anCount, col, "ptitle", xs, ys, labs, n, 1, True
@@ -764,8 +764,8 @@ End Function
 ' A sheet name safe to embed in a formula. An apostrophe in the name has to be
 ' doubled, or a sheet the user renames to "Bob's panel" silently breaks every
 ' linked label on the chart.
-Public Function SheetRef(ByVal ws As Worksheet) As String
-    SheetRef = Replace(ws.name, "'", "''")
+Public Function sheetRef(ByVal ws As Worksheet) As String
+    sheetRef = Replace(ws.name, "'", "''")
 End Function
 
 

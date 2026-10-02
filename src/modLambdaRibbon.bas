@@ -171,7 +171,7 @@ Private Function AFEntries() As Collection
 
     Dim found As Collection
     On Error Resume Next
-    If Application.Workbooks.Count > 0 Then
+    If Application.Workbooks.count > 0 Then
         Set found = modLambdaLib.EntriesFromWorkbookNames(ActiveWorkbook)
     End If
     On Error GoTo 0
@@ -187,7 +187,7 @@ End Function
 ' unsaved Book1/Book2 would look like the same workbook.
 Private Function ActiveWorkbookKey() As String
     On Error Resume Next
-    If Application.Workbooks.Count > 0 Then
+    If Application.Workbooks.count > 0 Then
         ActiveWorkbookKey = ActiveWorkbook.FullName & "|" & ActiveWorkbook.name
     End If
 End Function
@@ -220,7 +220,7 @@ End Function
 ' already-sorted list, which this usually is.
 Private Function SortEntriesByName(ByVal entries As Collection) As Collection
     Dim n As Long
-    n = entries.Count
+    n = entries.count
 
     Dim out As New Collection
     Set SortEntriesByName = out
@@ -259,7 +259,7 @@ End Function
 ' place.
 Private Function EntryAt(ByVal entries As Collection, ByVal zeroBasedIndex As Long) As Variant
     If zeroBasedIndex < 0 Then Exit Function
-    If zeroBasedIndex + 1 > entries.Count Then Exit Function
+    If zeroBasedIndex + 1 > entries.count Then Exit Function
     EntryAt = entries(zeroBasedIndex + 1)
 End Function
 
@@ -269,7 +269,7 @@ End Function
 ' -1 leaves the dropdown blank. Both callers reconcile by adopting EntryAt(pos).
 Private Function IndexOfName(ByVal entries As Collection, ByVal name As String) As Long
     Dim i As Long
-    For i = 1 To entries.Count
+    For i = 1 To entries.count
         If StrComp(CStr(entries(i)(0)), name, vbTextCompare) = 0 Then
             IndexOfName = i - 1
             Exit Function
@@ -298,7 +298,7 @@ End Sub
 
 Public Sub LambdaListCount(control As IRibbonControl, ByRef returnedVal)
     Dim n As Long
-    n = LibraryEntries().Count
+    n = LibraryEntries().count
     If n = 0 Then n = 1                          ' room for the [None] placeholder
     returnedVal = n
 End Sub
@@ -369,7 +369,7 @@ End Sub
 
 Public Sub LambdaAFCount(control As IRibbonControl, ByRef returnedVal)
     Dim n As Long
-    n = AFEntries().Count
+    n = AFEntries().count
     If n = 0 Then n = 1
     returnedVal = n
 End Sub
@@ -421,7 +421,7 @@ Public Sub LambdaInjectSelected(control As IRibbonControl)
 
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromLibrary(mSelectedName)
-    If entries.Count = 0 Then
+    If entries.count = 0 Then
         Warn "'" & mSelectedName & "' is no longer in the library."
         Lambda_Update
         Exit Sub
@@ -439,12 +439,12 @@ Public Sub LambdaInjectAll(control As IRibbonControl)
 
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromLibrary()
-    If entries.Count = 0 Then
+    If entries.count = 0 Then
         Warn "The LAMBDA library is empty."
         Exit Sub
     End If
 
-    If MsgBox("Add all " & entries.Count & " library function(s) to '" & ActiveWorkbook.name & "'?" & _
+    If MsgBox("Add all " & entries.count & " library function(s) to '" & ActiveWorkbook.name & "'?" & _
               vbCrLf & vbCrLf & "Existing names with the same name will be replaced.", _
               vbQuestion + vbYesNo, DIALOG_TITLE) <> vbYes Then Exit Sub
 
@@ -468,14 +468,14 @@ Public Sub LambdaInjectFromGist(control As IRibbonControl)
 
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromGistUrl(url)
-    If entries.Count = 0 Then
+    If entries.count = 0 Then
         Warn "No LAMBDA / named-formula definitions found at that URL." & vbCrLf & _
              "Confirm it is a single-file Gist in the Advanced Formula Environment format."
         Exit Sub
     End If
     If Len(moduleName) > 0 Then Set entries = modLambdaLib.ApplyModuleNamespace(entries, moduleName)
 
-    If MsgBox("Found " & entries.Count & " definition(s)." & vbCrLf & vbCrLf & _
+    If MsgBox("Found " & entries.count & " definition(s)." & vbCrLf & vbCrLf & _
               "Add them to '" & ActiveWorkbook.name & "'" & _
               IIf(Len(moduleName) > 0, " under module '" & moduleName & "'", "") & "?" & vbCrLf & _
               "Existing names with the same name will be replaced.", _
@@ -494,34 +494,34 @@ End Sub
 ' state, so bailing out with EnableEvents still False would leave events dead
 ' for every open workbook until Excel restarts.
 Private Sub InjectAndReport(ByVal entries As Collection, ByVal wb As Workbook)
-    Dim failed As New Collection
+    Dim Failed As New Collection
     Dim wrapped As New Collection
     Dim added As Long
 
     On Error GoTo CleanExit
     AppStateManager.FastModeOn
-    added = modLambdaLib.AddEntriesToWorkbook(entries, wb, failed, wrapped)
+    added = modLambdaLib.AddEntriesToWorkbook(entries, wb, Failed, wrapped)
 
 CleanExit:
     AppStateManager.FastModeOff
     If Err.Number <> 0 Then Err.Raise Err.Number, "InjectAndReport", Err.description
 
     Dim msg As String
-    msg = "Added " & added & " of " & entries.Count & " function(s) to '" & wb.name & "'."
+    msg = "Added " & added & " of " & entries.count & " function(s) to '" & wb.name & "'."
 
     ' Anything Excel would only accept wrapped is called differently, so say so.
     ' Silently changing how a function is called would be worse than the
     ' original failure -- the user would type Name, get an error, and have no
     ' way of knowing why.
-    If wrapped.Count > 0 Then
+    If wrapped.count > 0 Then
         msg = msg & vbCrLf & vbCrLf & _
               "Excel would not store these as plain named formulas, so they were " & _
               "stored as zero-argument functions." & vbCrLf & _
               "Call them with brackets - NAME() rather than NAME:" & NameList(wrapped)
     End If
 
-    If failed.Count > 0 Then msg = msg & vbCrLf & vbCrLf & _
-                                   "Skipped (invalid name or conflict):" & NameList(failed)
+    If Failed.count > 0 Then msg = msg & vbCrLf & vbCrLf & _
+                                   "Skipped (invalid name or conflict):" & NameList(Failed)
 
     MsgBox msg, vbInformation, DIALOG_TITLE
 End Sub
@@ -539,7 +539,7 @@ Public Sub LambdaImportSelectedAF(control As IRibbonControl)
 
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromWorkbookNames(ActiveWorkbook, mAFSelectedName)
-    If entries.Count = 0 Then
+    If entries.count = 0 Then
         Warn "'" & mAFSelectedName & "' is no longer defined in '" & ActiveWorkbook.name & "'."
         Lambda_Update
         Exit Sub
@@ -557,12 +557,12 @@ Public Sub LambdaImportAllAF(control As IRibbonControl)
 
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromWorkbookNames(ActiveWorkbook)
-    If entries.Count = 0 Then
+    If entries.count = 0 Then
         Warn "'" & ActiveWorkbook.name & "' has no workbook-scoped LAMBDA functions."
         Exit Sub
     End If
 
-    If MsgBox("Import all " & entries.Count & " LAMBDA(s) from '" & ActiveWorkbook.name & _
+    If MsgBox("Import all " & entries.count & " LAMBDA(s) from '" & ActiveWorkbook.name & _
               "' into the library?", vbQuestion + vbYesNo, DIALOG_TITLE) <> vbYes Then Exit Sub
 
     StoreAndReport entries
@@ -584,13 +584,13 @@ Public Sub LambdaImportFromGist(control As IRibbonControl)
 
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromGistUrl(url)
-    If entries.Count = 0 Then
+    If entries.count = 0 Then
         Warn "No LAMBDA / named-formula definitions found at that URL."
         Exit Sub
     End If
     If Len(moduleName) > 0 Then Set entries = modLambdaLib.ApplyModuleNamespace(entries, moduleName)
 
-    If MsgBox("Found " & entries.Count & " definition(s). Add them to the library?", _
+    If MsgBox("Found " & entries.count & " definition(s). Add them to the library?", _
               vbQuestion + vbYesNo, DIALOG_TITLE) <> vbYes Then Exit Sub
 
     StoreAndReport entries
@@ -619,7 +619,7 @@ CleanExit:
 
     ' Remember the last thing imported -- it is almost always what the user
     ' wants to act on next.
-    If entries.Count > 0 Then mSelectedName = CStr(entries(entries.Count)(0))
+    If entries.count > 0 Then mSelectedName = CStr(entries(entries.count)(0))
     Lambda_Update
 
     MsgBox "Library updated." & vbCrLf & vbCrLf & _
@@ -751,14 +751,14 @@ Public Sub LambdaImportXlsx(control As IRibbonControl)
 
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromXlsxFile(CStr(path))
-    If entries.Count = 0 Then
+    If entries.count = 0 Then
         Warn "No functions found in that file." & vbCrLf & vbCrLf & _
              "It needs a 'Function' column and a 'Formula' column, with a " & _
              "'Description' column optional."
         Exit Sub
     End If
 
-    If MsgBox("Found " & entries.Count & " function(s). Add them to the library?", _
+    If MsgBox("Found " & entries.count & " function(s). Add them to the library?", _
               vbQuestion + vbYesNo, DIALOG_TITLE) <> vbYes Then Exit Sub
 
     StoreAndReport entries
@@ -797,13 +797,13 @@ Public Sub LambdaImportText(control As IRibbonControl)
 
     Dim entries As Collection
     Set entries = modLambdaLib.EntriesFromTextFile(CStr(path))
-    If entries.Count = 0 Then
+    If entries.count = 0 Then
         Warn "No LAMBDA definitions found in that file." & vbCrLf & vbCrLf & _
              "Expected Advanced Formula Environment format: NAME = LAMBDA(...);"
         Exit Sub
     End If
 
-    If MsgBox("Found " & entries.Count & " function(s). Add them to the library?", _
+    If MsgBox("Found " & entries.count & " function(s). Add them to the library?", _
               vbQuestion + vbYesNo, DIALOG_TITLE) <> vbYes Then Exit Sub
 
     StoreAndReport entries
@@ -876,7 +876,7 @@ Private Function AskModuleName(ByRef cancelled As Boolean) As String
 End Function
 
 Private Function HaveWorkbook() As Boolean
-    If Application.Workbooks.Count = 0 Then
+    If Application.Workbooks.count = 0 Then
         Warn "Open a workbook first - there is nothing to act on."
         Exit Function
     End If
@@ -927,9 +927,9 @@ End Function
 Private Function NameList(ByVal names As Collection) As String
     Const MAX_SHOWN As Long = 20
     Dim s As String, i As Long
-    For i = 1 To names.Count
+    For i = 1 To names.count
         If i > MAX_SHOWN Then
-            s = s & vbCrLf & "  ...and " & (names.Count - MAX_SHOWN) & " more."
+            s = s & vbCrLf & "  ...and " & (names.count - MAX_SHOWN) & " more."
             Exit For
         End If
         s = s & vbCrLf & "  - " & names(i)

@@ -409,8 +409,8 @@ Public Property Get EMPTYTXT() As String
 End Property
 
 ' Wrap a string as an Excel string literal, doubling any quote inside it.
-Public Function Q(ByVal s As String) As String
-    Q = Chr$(34) & Replace(s, Chr$(34), Chr$(34) & Chr$(34)) & Chr$(34)
+Public Function q(ByVal s As String) As String
+    q = Chr$(34) & Replace(s, Chr$(34), Chr$(34) & Chr$(34)) & Chr$(34)
 End Function
 
 ' A number, in a formula, on any locale.
@@ -843,7 +843,7 @@ Public Function FxPointLabel(ByRef ly As TPanelLayout, ByRef sp As TPanelSpec, _
     Dim value As String, sep As String, txt As String
     value = FxValueRef(ly, sp, band, element, col, r)
     sep = ref(col, ly.cSep, r)
-    txt = "TEXT(" & value & "," & Q(st.labelFormat) & ")"
+    txt = "TEXT(" & value & "," & q(st.labelFormat) & ")"
 
     If PS_TwoTone(sp) Then
         FxPointLabel = "=IF(" & sep & "=1," & EMPTYTXT & ",IF(" & value & _
@@ -945,7 +945,7 @@ End Function
 ' floor and 1 at its top.
 Public Function FxTickText(ByRef ly As TPanelLayout, ByVal f As Double) As String
     FxTickText = "=TEXT(" & Par(ly, PR_VMIN) & "+(" & Par(ly, PR_VMAX) & "-" & _
-                 Par(ly, PR_VMIN) & ")*" & NumStr(f) & "," & Q("#,##0") & ")"
+                 Par(ly, PR_VMIN) & ")*" & NumStr(f) & "," & q("#,##0") & ")"
 End Function
 
 ' A tick's position on the value axis, as a plain number.

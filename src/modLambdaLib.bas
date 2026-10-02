@@ -107,7 +107,7 @@ Public Function EntriesFromXlsxFile(ByVal path As String) As Collection
 
     ' No table matched -- fall back to treating row 1 of each sheet as headers.
     For Each ws In wb.Worksheets
-        If ws.UsedRange.rows.Count > 1 Then
+        If ws.UsedRange.rows.count > 1 Then
             If ReadEntriesFromHeaderRow(ws.rows(1), out) Then GoTo done
         End If
     Next ws
@@ -150,7 +150,7 @@ Private Function ReadEntriesFromHeaderRow(ByVal headerRow As Range, _
 
     Dim firstRow As Long, lastRow As Long, r As Long
     firstRow = headerRow.Row + 1
-    lastRow = ws.Cells(ws.rows.Count, ixName).End(xlUp).Row
+    lastRow = ws.Cells(ws.rows.count, ixName).End(xlUp).Row
     If lastRow < firstRow Then Exit Function
 
     Dim nm As String, fx As String, ds As String
@@ -267,7 +267,7 @@ End Function
 ' expressions as defaults, and an omitted object parameter is Nothing anyway.)
 Public Function AddEntriesToWorkbook(ByVal entries As Collection, _
                                      ByVal wb As Workbook, _
-                                     Optional ByVal failed As Collection, _
+                                     Optional ByVal Failed As Collection, _
                                      Optional ByVal wrapped As Collection) As Long
     If wb Is Nothing Then Exit Function
 
@@ -296,23 +296,23 @@ Public Function AddEntriesToWorkbook(ByVal entries As Collection, _
                 End If
             End If
         Next e
-    Loop While addedThisPass > 0 And done.Count < entries.Count And guard < 20
+    Loop While addedThisPass > 0 And done.count < entries.count And guard < 20
 
     ' Report WHY, not just WHICH. "FILL (error 1004 - ...)" points at the cause;
     ' a bare list of names sends you back to guessing.
-    If Not failed Is Nothing Then
+    If Not Failed Is Nothing Then
         For Each e In entries
             If Not done.Exists(CStr(e(0))) Then
                 If Len(reasons(CStr(e(0)))) > 0 Then
-                    failed.Add CStr(e(0)) & " (" & reasons(CStr(e(0))) & ")"
+                    Failed.Add CStr(e(0)) & " (" & reasons(CStr(e(0))) & ")"
                 Else
-                    failed.Add CStr(e(0))
+                    Failed.Add CStr(e(0))
                 End If
             End If
         Next e
     End If
 
-    AddEntriesToWorkbook = done.Count
+    AddEntriesToWorkbook = done.count
 End Function
 
 ' Create or replace one defined name holding a LAMBDA. Returns True on success;
@@ -603,7 +603,7 @@ Public Sub ExportLibraryToXlsx(ByVal path As String)
     ws.Range("C1").value = "Description"
 
     Dim n As Long
-    n = entries.Count
+    n = entries.count
 
     If n > 0 Then
         Dim buf() As Variant

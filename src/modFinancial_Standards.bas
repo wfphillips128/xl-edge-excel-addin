@@ -163,7 +163,7 @@ Public Sub FormatPTDataFields(control As IRibbonControl, Optional ByVal DoRefres
                 Set hdr = GetPivotHeaderRange(pt)
                 If Not hdr Is Nothing Then
 
-                    headerRows = hdr.rows.Count
+                    headerRows = hdr.rows.count
 
                     If headerRows = 1 Then
                         targetHeight = HEADER_ROW_HEIGHT_SINGLE
@@ -437,9 +437,9 @@ Sub FillRight2()
 
     Set ws = src.Worksheet
     topRow = src.Row
-    botRow = src.Row + src.rows.Count - 1
-    firstCol = src.Column + src.Columns.Count
-    lastCol = ws.Columns.Count
+    botRow = src.Row + src.rows.count - 1
+    firstCol = src.Column + src.Columns.count
+    lastCol = ws.Columns.count
 
     For c = firstCol To lastCol
         Set dest = ws.Range(ws.Cells(topRow, c), ws.Cells(botRow, c))
@@ -488,7 +488,7 @@ Private Function HasFormulaAboveOrBelow(ByVal ws As Worksheet, _
         End If
     End If
 
-    If botRow < ws.rows.Count Then
+    If botRow < ws.rows.count Then
         If ws.Cells(botRow + 1, col).HasFormula Then HasFormulaAboveOrBelow = True
     End If
 End Function
@@ -527,9 +527,9 @@ Sub FillDown2()
 
     Set ws = src.Worksheet
     leftCol = src.Column
-    rightCol = src.Column + src.Columns.Count - 1
-    firstRow = src.Row + src.rows.Count
-    lastRow = ws.UsedRange.Row + ws.UsedRange.rows.Count - 1
+    rightCol = src.Column + src.Columns.count - 1
+    firstRow = src.Row + src.rows.count
+    lastRow = ws.UsedRange.Row + ws.UsedRange.rows.count - 1
 
     For r = firstRow To lastRow
         Set dest = ws.Range(ws.Cells(r, leftCol), ws.Cells(r, rightCol))
@@ -728,27 +728,27 @@ strHeading = RGB(Red:=19, Green:=46, Blue:=87) 'Dark Blue
 strAltText = RGB(Red:=255, Green:=255, Blue:=255) 'White
 
     With Selection
-        Select Case Selection.Font.Color
+        Select Case Selection.Font.color
             Case strAltText
-                Selection.Font.Color = strInputs
+                Selection.Font.color = strInputs
             Case strInputs
-                Selection.Font.Color = strWorksheet
+                Selection.Font.color = strWorksheet
             Case strWorksheet
-                Selection.Font.Color = strFormulas
+                Selection.Font.color = strFormulas
             Case strFormulas
-                Selection.Font.Color = strPartials
+                Selection.Font.color = strPartials
             Case strPartials
-                Selection.Font.Color = strWorkbook
+                Selection.Font.color = strWorkbook
             Case strWorkbook
-                Selection.Font.Color = strFileLinks
+                Selection.Font.color = strFileLinks
             Case strFileLinks
-                Selection.Font.Color = strInvestigate
+                Selection.Font.color = strInvestigate
             Case strInvestigate
-                Selection.Font.Color = strHeading
+                Selection.Font.color = strHeading
             Case strHeading
-                Selection.Font.Color = strAltText
+                Selection.Font.color = strAltText
             Case Else
-                Selection.Font.Color = strFormulas
+                Selection.Font.color = strFormulas
         End Select
     End With
 
@@ -787,49 +787,49 @@ strAltText = RGB(Red:=255, Green:=255, Blue:=255) 'White
 strLightShading = RGB(Red:=242, Green:=242, Blue:=242) 'Light Grey
 
     With Selection
-        Select Case Selection.Interior.Color
+        Select Case Selection.Interior.color
             Case strHeading2
-                Selection.Interior.Color = strInputs
-                Selection.Font.Color = strAltText
+                Selection.Interior.color = strInputs
+                Selection.Font.color = strAltText
                 Selection.Font.bold = True
             Case strInputs
-                Selection.Interior.Color = strWorksheet
-                Selection.Font.Color = strAltText
+                Selection.Interior.color = strWorksheet
+                Selection.Font.color = strAltText
                 Selection.Font.bold = True
             Case strWorksheet
-                Selection.Interior.Color = strFormulas
-                Selection.Font.Color = strAltText
+                Selection.Interior.color = strFormulas
+                Selection.Font.color = strAltText
                 Selection.Font.bold = True
             Case strFormulas
-                Selection.Interior.Color = strPartials
-                Selection.Font.Color = strAltText
+                Selection.Interior.color = strPartials
+                Selection.Font.color = strAltText
                 Selection.Font.bold = True
             Case strPartials
-                Selection.Interior.Color = strWorkbook
-                Selection.Font.Color = strAltText
+                Selection.Interior.color = strWorkbook
+                Selection.Font.color = strAltText
                 Selection.Font.bold = True
             Case strWorkbook
-                Selection.Interior.Color = strFileLinks
-                Selection.Font.Color = strAltText
+                Selection.Interior.color = strFileLinks
+                Selection.Font.color = strAltText
                 Selection.Font.bold = True
             Case strFileLinks
-                Selection.Interior.Color = strInvestigate
-                Selection.Font.Color = strFileLinks
+                Selection.Interior.color = strInvestigate
+                Selection.Font.color = strFileLinks
             Case strInvestigate
-                Selection.Interior.Color = strLightShading
-                Selection.Font.Color = strFormulas
+                Selection.Interior.color = strLightShading
+                Selection.Font.color = strFormulas
                 Selection.Font.bold = True
             Case strLightShading
-                Selection.Interior.Color = strHeading
-                Selection.Font.Color = strAltText
+                Selection.Interior.color = strHeading
+                Selection.Font.color = strAltText
                 Selection.Font.bold = True
             Case strHeading
-                Selection.Interior.Color = strHeading2
-                Selection.Font.Color = strInputs
+                Selection.Interior.color = strHeading2
+                Selection.Font.color = strInputs
                 Selection.Font.bold = True
             Case Else
-                Selection.Interior.Color = strHeading2
-                Selection.Font.Color = strInputs
+                Selection.Interior.color = strHeading2
+                Selection.Font.color = strInputs
                 Selection.Font.bold = True
         End Select
     End With
@@ -854,8 +854,8 @@ fontchoice = "Calibri"
 
     Selection.Borders.LineStyle = xlNone
     Selection.Font.bold = False
-    Selection.Interior.Color = xlNone
-    Selection.Font.Color = vbBlack
+    Selection.Interior.color = xlNone
+    Selection.Font.color = vbBlack
     'Selection.Font.Size = 10
     'Selection.Font = fontchoice
 
@@ -893,22 +893,22 @@ On Error Resume Next
 
     'color cells having formulas
     For Each cell In ActiveSheet.UsedRange.SpecialCells(xlCellTypeFormulas, xlTextValues)
-    cell.Font.Color = formulawithtextColor
+    cell.Font.color = formulawithtextColor
     Next cell
     
     'color cells having formulas and having nos.
     For Each cell In ActiveSheet.UsedRange.SpecialCells(xlCellTypeFormulas, xlNumbers)
-    cell.Font.Color = formulaColor
+    cell.Font.color = formulaColor
     Next cell
     
     'color cells having constants with text (non-formulas)
     For Each cell In ActiveSheet.UsedRange.SpecialCells(xlCellTypeConstants, xlTextValues)
-    cell.Font.Color = formulaColor
+    cell.Font.color = formulaColor
     Next cell
     
     'color cells having constants with numbers (non-formulas)
     For Each cell In ActiveSheet.UsedRange.SpecialCells(xlCellTypeConstants, xlNumbers)
-    cell.Font.Color = constantColor
+    cell.Font.color = constantColor
     Next cell
     
     HighlightConstants ' referencee seperate macro that is more complicated which finds numbers hardcoded into formulas
@@ -937,18 +937,18 @@ formulawithotherColor = RGB(Red:=195, Green:=40, Blue:=55) 'Red
 
 On Error Resume Next
 
-    Selection.SpecialCells(xlCellTypeConstants, xlTextValues).Font.Color = formulaColor
-    Selection.SpecialCells(xlCellTypeConstants, xlNumbers).Font.Color = constantColor
-    Selection.SpecialCells(xlCellTypeFormulas, xlTextValues).Font.Color = formulawithtextColor
-    Selection.SpecialCells(xlCellTypeFormulas, xlNumbers).Font.Color = formulaColor
+    Selection.SpecialCells(xlCellTypeConstants, xlTextValues).Font.color = formulaColor
+    Selection.SpecialCells(xlCellTypeConstants, xlNumbers).Font.color = constantColor
+    Selection.SpecialCells(xlCellTypeFormulas, xlTextValues).Font.color = formulawithtextColor
+    Selection.SpecialCells(xlCellTypeFormulas, xlNumbers).Font.color = formulaColor
 
     'to be more specific
     For Each cell In Selection
         If Left(cell.formula & " ", 1) = "=" Then
             If InStr(CleanStr(cell.formula), "]") Then
-                cell.Font.Color = formulawithlinkColor
+                cell.Font.color = formulawithlinkColor
             ElseIf InStr(CleanStr(cell.formula), "!") Then
-                cell.Font.Color = formulawithrefColor
+                cell.Font.color = formulawithrefColor
             End If
         'ElseIf HasConstant( = True Then cell.Font.Color = constantColor
         End If
@@ -981,10 +981,10 @@ formulawithotherColor = RGB(Red:=195, Green:=40, Blue:=55) 'Red
 
 On Error Resume Next
 
-    Selection.SpecialCells(xlCellTypeConstants, xlTextValues).Font.Color = formulaColor
-    Selection.SpecialCells(xlCellTypeConstants, xlNumbers).Font.Color = constantColor
-    Selection.SpecialCells(xlCellTypeFormulas, xlTextValues).Font.Color = constantColor
-    Selection.SpecialCells(xlCellTypeFormulas, xlNumbers).Font.Color = formulaColor
+    Selection.SpecialCells(xlCellTypeConstants, xlTextValues).Font.color = formulaColor
+    Selection.SpecialCells(xlCellTypeConstants, xlNumbers).Font.color = constantColor
+    Selection.SpecialCells(xlCellTypeFormulas, xlTextValues).Font.color = constantColor
+    Selection.SpecialCells(xlCellTypeFormulas, xlNumbers).Font.color = formulaColor
    
 End Sub
 
@@ -1012,31 +1012,31 @@ On Error Resume Next
 
     'color cells having formulas
     For Each cell In ActiveSheet.UsedRange.SpecialCells(xlCellTypeFormulas, xlTextValues)
-    cell.Font.Color = formulawithtextColor
+    cell.Font.color = formulawithtextColor
     Next cell
     
     'color cells having formulas and having nos.
     For Each cell In ActiveSheet.UsedRange.SpecialCells(xlCellTypeFormulas, xlNumbers)
-    cell.Font.Color = formulaColor
+    cell.Font.color = formulaColor
     Next cell
     
     'color cells having constants with text (non-formulas)
     For Each cell In ActiveSheet.UsedRange.SpecialCells(xlCellTypeConstants, xlTextValues)
-    cell.Font.Color = formulaColor
+    cell.Font.color = formulaColor
     Next cell
     
     'color cells having constants with numbers (non-formulas)
     For Each cell In ActiveSheet.UsedRange.SpecialCells(xlCellTypeConstants, xlNumbers)
-    cell.Font.Color = constantColor
+    cell.Font.color = constantColor
     Next cell
 
     'to be more specifiy
     For Each cell In ActiveSheet.UsedRange
         If Left(cell.formula & " ", 1) = "=" Then
             If InStr(CleanStr(cell.formula), "]") Then
-                cell.Font.Color = formulawithlinkColor
+                cell.Font.color = formulawithlinkColor
             ElseIf InStr(CleanStr(cell.formula), "!") Then
-                cell.Font.Color = formulawithrefColor
+                cell.Font.color = formulawithrefColor
             End If
         'ElseIf HasConstant( = True Then cell.Font.Color = constantColor
         End If
@@ -1105,7 +1105,7 @@ Else
 '\\No formulas found
 End If
 
-If Not rng2 Is Nothing Then rng2.Font.Color = formulawithtextColor
+If Not rng2 Is Nothing Then rng2.Font.color = formulawithtextColor
 
 
 End Sub

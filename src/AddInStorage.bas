@@ -68,6 +68,12 @@ Private Const LAMBDA_NAME_COLUMN  As Variant = "Function"       ' the function n
 Private Const LAMBDA_CODE_COLUMN  As Variant = "Formula"        ' "=LAMBDA(...)" stored as TEXT
 Private Const LAMBDA_DESC_COLUMN  As Variant = "Description"    ' what the function does
 
+' The longest formula the library will store. It is Excel's own limit on a
+' formula, so a longer LAMBDA could never be put into a workbook anyway - and it
+' keeps every value under the ~8,200-character ceiling on writing text to cells
+' in one block, past which Excel raises "Error 7 - Out of memory".
+Private Const MAX_STORED_FORMULA  As Long = 8192
+
 ' ----------------------------------------------------------------------------
 '  FALLBACK DEFAULTS -- the values that were hardcoded before tblConstants.
 '  These are the safety net, NOT the source of truth. Change a value for real
@@ -107,6 +113,10 @@ Private mCache As Object            ' Scripting.Dictionary; Nothing = not loaded
 ' to report. Without stashing the text here that detail was simply lost -- a
 ' "could not be written" message with no error number is close to useless.
 Private mLastError As String
+
+' True while WriteLambdaBlock is putting the previous library back after a
+' failed write, so a second failure cannot recurse.
+Private mRestoring As Boolean
 
 ' Human-readable reason the last SetConstant / SetCompanyList returned False.
 Public Property Get LastError() As String
@@ -414,7 +424,7 @@ End Property
 ' the key isn't in the table -- the caller decides whether that's an error.
 ' Does NOT save; batch your writes then call SaveStorage once.
 Public Function SetConstant(ByVal key As String, ByVal newValue As Variant) As Boolean
-    On Error GoTo failed
+    On Error GoTo Failed
     mLastError = ""
 
     Dim lo As ListObject
@@ -429,7 +439,7 @@ Public Function SetConstant(ByVal key As String, ByVal newValue As Variant) As B
     Set valCol = lo.ListColumns(CONST_VAL_COLUMN).DataBodyRange
 
     Dim i As Long
-    For i = 1 To keyCol.rows.Count
+    For i = 1 To keyCol.rows.count
         If StrComp(Trim$(CStr(keyCol.Cells(i, 1).value)), key, vbTextCompare) = 0 Then
             valCol.Cells(i, 1).value = newValue
             InvalidateCache
@@ -441,7 +451,7 @@ Public Function SetConstant(ByVal key As String, ByVal newValue As Variant) As B
     mLastError = "Key '" & key & "' was not found in tblConstants."
     Exit Function
 
-failed:
+Failed:
     mLastError = "Error " & Err.Number & " writing '" & key & "': " & Err.description
 End Function
 
@@ -458,7 +468,7 @@ End Function
 ' Resize simply redeclares where the table starts and ends. No cell ever moves,
 ' so neighbouring tables -- beside it or below it -- are untouched.
 Public Function SetCompanyList(ByVal names As Variant) As Boolean
-    On Error GoTo failed
+    On Error GoTo Failed
     mLastError = ""
 
     Dim lo As ListObject
@@ -478,7 +488,7 @@ Public Function SetCompanyList(ByVal names As Variant) As Boolean
     If rowsWanted < 1 Then rowsWanted = 1
 
     Dim newRange As Range
-    Set newRange = lo.Range.Cells(1, 1).Resize(rowsWanted + 1, lo.ListColumns.Count)
+    Set newRange = lo.Range.Cells(1, 1).Resize(rowsWanted + 1, lo.ListColumns.count)
 
     ' Refuse to grow into a neighbour rather than corrupt the sheet.
     Dim clash As String
@@ -514,7 +524,7 @@ Public Function SetCompanyList(ByVal names As Variant) As Boolean
     SetCompanyList = True
     Exit Function
 
-failed:
+Failed:
     mLastError = "Error " & Err.Number & " writing the company list: " & Err.description
 End Function
 
@@ -611,7 +621,7 @@ End Function
 
 ' How many LAMBDAs are stored.
 Public Function LambdaCount() As Long
-    LambdaCount = LambdaAll().Count
+    LambdaCount = LambdaAll().count
 End Function
 
 ' 1-based position of a function in LambdaAll(), or 0 if it isn't there.
@@ -619,7 +629,7 @@ End Function
 Public Function LambdaRowIndex(ByVal name As String) As Long
     Dim all As Collection, i As Long
     Set all = LambdaAll()
-    For i = 1 To all.Count
+    For i = 1 To all.count
         If StrComp(CStr(all(i)(0)), name, vbTextCompare) = 0 Then
             LambdaRowIndex = i
             Exit Function
@@ -631,7 +641,7 @@ End Function
 Public Function LambdaEntry(ByVal name As String) As Variant
     Dim all As Collection, i As Long
     Set all = LambdaAll()
-    For i = 1 To all.Count
+    For i = 1 To all.count
         If StrComp(CStr(all(i)(0)), name, vbTextCompare) = 0 Then
             LambdaEntry = all(i)
             Exit Function
@@ -664,14 +674,32 @@ End Function
 ' Replace the entire table with the supplied entries. The single choke point
 ' every other writer goes through.
 Public Function WriteLambdaBlock(ByVal entries As Collection) As Boolean
-    On Error GoTo failed
+    On Error GoTo Failed
     mLastError = ""
 
     Dim lo As ListObject
     Set lo = LambdaTable()
 
     Dim n As Long
-    n = entries.Count
+    n = entries.count
+
+    ' Check every entry BEFORE the table is touched. The table is cleared just
+    ' below, so refusing any later would leave the library empty - and the next
+    ' successful write would save it that way.
+    Dim chk As Variant
+    For Each chk In entries
+        If Len(CStr(chk(1))) > MAX_STORED_FORMULA Then
+            mLastError = "'" & CStr(chk(0)) & "' is " & Format$(Len(CStr(chk(1))), "#,##0") & _
+                         " characters. Excel formulas are limited to " & _
+                         Format$(MAX_STORED_FORMULA, "#,##0") & ", so it could not be used in " & _
+                         "a workbook either. Nothing was changed."
+            Exit Function
+        End If
+    Next chk
+
+    ' What is there now, so a write that fails part-way can put it back.
+    Dim previous As Collection
+    If Not mRestoring Then Set previous = LambdaAll()
 
     ' Blank the current contents BEFORE resizing. Shrinking leaves any rows
     ' below the new boundary outside the table, and those stale values would sit
@@ -689,7 +717,7 @@ Public Function WriteLambdaBlock(ByVal entries As Collection) As Boolean
     If hadTotals Then lo.ShowTotals = False
 
     Dim newRange As Range
-    Set newRange = lo.Range.Cells(1, 1).Resize(rowsWanted + 1, lo.ListColumns.Count)
+    Set newRange = lo.Range.Cells(1, 1).Resize(rowsWanted + 1, lo.ListColumns.count)
 
     ' Refuse to grow into a neighbour rather than corrupt the sheet.
     Dim clash As String
@@ -726,24 +754,51 @@ Public Function WriteLambdaBlock(ByVal entries As Collection) As Boolean
 
     ' Text format FIRST, then the values. The other order lets Excel try to
     ' evaluate "=LAMBDA(...)" as a formula on the way in, which fails.
+    '
+    ' NO WrapText ON THE FORMULA COLUMN. Wrapped, every stored LAMBDA - thousands
+    ' of characters - stretches its row to Excel's 409.5-point maximum, and the
+    ' reference sheet becomes unusable to scroll through. The Formula column is a
+    ' data store, not something anyone reads on the sheet, so one clipped line is
+    ' the right display.
     With lo.ListColumns(LAMBDA_CODE_COLUMN).DataBodyRange
         .NumberFormat = "@"
         .value = codeArr
-        .WrapText = True
+        .WrapText = False
     End With
     lo.ListColumns(LAMBDA_NAME_COLUMN).DataBodyRange.value = nameArr
+
+    ' Descriptions are a sentence or two, so wrapping them is safe and useful.
     With lo.ListColumns(LAMBDA_DESC_COLUMN).DataBodyRange
         .value = descArr
         .WrapText = True
     End With
+
+    ' Pin the row height, so a long description cannot stretch a row either.
+    On Error Resume Next
+    lo.DataBodyRange.rows.rowHeight = 15
+    On Error GoTo Failed
 
     If hadTotals Then lo.ShowTotals = True
 
     WriteLambdaBlock = True
     Exit Function
 
-failed:
+Failed:
     mLastError = "Error " & Err.Number & " writing the LAMBDA library: " & Err.description
+    ' The table was cleared before the failure. Put the previous library back
+    ' rather than leave it empty for the next successful write to save.
+    If Not previous Is Nothing Then
+        Dim why As String
+        why = mLastError
+        mRestoring = True
+        If WriteLambdaBlock(previous) Then
+            mLastError = why & " The library was left as it was."
+        Else
+            mLastError = why & " Restoring the previous library also failed: " & mLastError & _
+                         " Do not save the add-in; close Excel without saving to keep the copy on disk."
+        End If
+        mRestoring = False
+    End If
 End Function
 
 ' Add a function, or overwrite it if the name is already taken.
@@ -764,7 +819,7 @@ End Function
 Public Function UpsertLambdas(ByVal entries As Collection, _
                               ByRef addedCount As Long, _
                               ByRef updatedCount As Long) As Boolean
-    On Error GoTo failed
+    On Error GoTo Failed
     mLastError = ""
     addedCount = 0
     updatedCount = 0
@@ -774,7 +829,7 @@ Public Function UpsertLambdas(ByVal entries As Collection, _
 
     ' Nothing on either side means nothing to do. This guard is not cosmetic:
     ' ReDim buf(1 To 0) further down is a runtime error, not an empty array.
-    If current.Count = 0 And entries.Count = 0 Then
+    If current.count = 0 And entries.count = 0 Then
         UpsertLambdas = True
         Exit Function
     End If
@@ -785,16 +840,16 @@ Public Function UpsertLambdas(ByVal entries As Collection, _
     Set pos = CreateObject("Scripting.Dictionary")
     pos.CompareMode = 1                              ' 1 = vbTextCompare
     Dim i As Long
-    For i = 1 To current.Count
+    For i = 1 To current.count
         pos(CStr(current(i)(0))) = i
     Next i
 
     ' A Collection can't be updated in place, so build the result as an array.
     Dim buf() As Variant
-    ReDim buf(1 To current.Count + entries.Count)
+    ReDim buf(1 To current.count + entries.count)
     Dim used As Long
-    used = current.Count
-    For i = 1 To current.Count
+    used = current.count
+    For i = 1 To current.count
         buf(i) = current(i)
     Next i
 
@@ -824,20 +879,20 @@ Public Function UpsertLambdas(ByVal entries As Collection, _
     UpsertLambdas = WriteLambdaBlock(out)
     Exit Function
 
-failed:
+Failed:
     mLastError = "Error " & Err.Number & " updating the LAMBDA library: " & Err.description
 End Function
 
 ' Remove one function. Returns False (with LastError set) if it isn't there.
 Public Function DeleteLambda(ByVal name As String) As Boolean
-    On Error GoTo failed
+    On Error GoTo Failed
     mLastError = ""
 
     Dim current As Collection, out As New Collection
     Set current = LambdaAll()
 
     Dim i As Long, found As Boolean
-    For i = 1 To current.Count
+    For i = 1 To current.count
         If StrComp(CStr(current(i)(0)), name, vbTextCompare) = 0 Then
             found = True
         Else
@@ -853,21 +908,21 @@ Public Function DeleteLambda(ByVal name As String) As Boolean
     DeleteLambda = WriteLambdaBlock(out)
     Exit Function
 
-failed:
+Failed:
     mLastError = "Error " & Err.Number & " deleting '" & name & "': " & Err.description
 End Function
 
 ' Change a function's name, keeping its formula and description.
 ' Refuses if the new name is already taken by a DIFFERENT function.
 Public Function RenameLambda(ByVal oldName As String, ByVal newName As String) As Boolean
-    On Error GoTo failed
+    On Error GoTo Failed
     mLastError = ""
 
     Dim current As Collection, out As New Collection
     Set current = LambdaAll()
 
     Dim i As Long, found As Boolean
-    For i = 1 To current.Count
+    For i = 1 To current.count
         If StrComp(CStr(current(i)(0)), newName, vbTextCompare) = 0 And _
            StrComp(CStr(current(i)(0)), oldName, vbTextCompare) <> 0 Then
             mLastError = "A function named '" & newName & "' is already in the library."
@@ -875,7 +930,7 @@ Public Function RenameLambda(ByVal oldName As String, ByVal newName As String) A
         End If
     Next i
 
-    For i = 1 To current.Count
+    For i = 1 To current.count
         If StrComp(CStr(current(i)(0)), oldName, vbTextCompare) = 0 Then
             found = True
             out.Add Array(newName, current(i)(1), current(i)(2))
@@ -892,20 +947,20 @@ Public Function RenameLambda(ByVal oldName As String, ByVal newName As String) A
     RenameLambda = WriteLambdaBlock(out)
     Exit Function
 
-failed:
+Failed:
     mLastError = "Error " & Err.Number & " renaming '" & oldName & "': " & Err.description
 End Function
 
 ' Change a function's description, leaving name and formula alone.
 Public Function SetLambdaDescription(ByVal name As String, ByVal description As String) As Boolean
-    On Error GoTo failed
+    On Error GoTo Failed
     mLastError = ""
 
     Dim current As Collection, out As New Collection
     Set current = LambdaAll()
 
     Dim i As Long, found As Boolean
-    For i = 1 To current.Count
+    For i = 1 To current.count
         If StrComp(CStr(current(i)(0)), name, vbTextCompare) = 0 Then
             found = True
             out.Add Array(current(i)(0), current(i)(1), description)
@@ -922,7 +977,7 @@ Public Function SetLambdaDescription(ByVal name As String, ByVal description As 
     SetLambdaDescription = WriteLambdaBlock(out)
     Exit Function
 
-failed:
+Failed:
     mLastError = "Error " & Err.Number & " describing '" & name & "': " & Err.description
 End Function
 

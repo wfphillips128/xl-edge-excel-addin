@@ -98,7 +98,7 @@ Public Sub LaunchPanelChart()
 
     DetectPanelSource src
 
-    On Error GoTo failed
+    On Error GoTo Failed
     Set f = New frmPanelChart
     f.Preload src.note, src.hasBlock, src.periodsGuess, src.elemGuess, _
               src.nPanels, src.confident, _
@@ -137,7 +137,7 @@ done:
     Set f = Nothing
     Exit Sub
 
-failed:
+Failed:
     MsgBox "Could not open the panel chart dialog." & vbCrLf & vbCrLf & _
            Err.description, vbExclamation, TITLE_TXT
 End Sub
@@ -214,7 +214,7 @@ Private Function BuildPanelSheet(ByVal wb As Workbook, ByRef sp As TPanelSpec, _
 
     ' Always a NEW sheet, deduped - which is why this tool needs no
     ' ConfirmDestructive prompt: there is nothing to overwrite.
-    Set ws = wb.Worksheets.Add(after:=wb.Worksheets(wb.Worksheets.Count))
+    Set ws = wb.Worksheets.Add(after:=wb.Worksheets(wb.Worksheets.count))
     On Error Resume Next
     ws.name = sp.SheetName
     If Err.Number <> 0 Then
@@ -307,7 +307,7 @@ Public Sub DetectPanelSource(ByRef src As TPanelSource)
     ' -- rejections, in order. Any one of them means placeholder mode.
     If TypeName(Application.Selection) <> "Range" Then Exit Sub
     Set rg = Application.Selection
-    If rg.Areas.Count > 1 Then Exit Sub
+    If rg.Areas.count > 1 Then Exit Sub
     On Error Resume Next
     Set ws = rg.Worksheet
     Err.Clear
@@ -315,16 +315,16 @@ Public Sub DetectPanelSource(ByRef src As TPanelSource)
     If ws Is Nothing Then Exit Sub
 
     ' Someone clicked a row or column header.
-    If rg.rows.Count = ws.rows.Count Then Exit Sub
-    If rg.Columns.Count = ws.Columns.Count Then Exit Sub
+    If rg.rows.count = ws.rows.count Then Exit Sub
+    If rg.Columns.count = ws.Columns.count Then Exit Sub
     ' Nobody builds a panel chart from that, and reading it would stall.
-    If rg.Cells.Count > 65536 Then Exit Sub
+    If rg.Cells.count > 65536 Then Exit Sub
 
     ' -- single-cell promotion. The common real case: the user clicks inside
     '    their table and hits the menu item.
-    If rg.Cells.Count = 1 Then
+    If rg.Cells.count = 1 Then
         Set rg = rg.CurrentRegion
-        If rg.Cells.Count <= 1 Then Exit Sub
+        If rg.Cells.count <= 1 Then Exit Sub
         src.confident = False
     End If
 
@@ -404,7 +404,7 @@ Public Sub DetectPanelSource(ByRef src As TPanelSource)
     ' Text names, or a column of distinct codes - cost centres, GL accounts
     ' and entity numbers are labels even though they are numeric.
     If src.namesCol Is Nothing And src.body.Column > 1 Then
-        Set probe = src.body.offset(0, -1).Resize(src.body.rows.Count, 1)
+        Set probe = src.body.offset(0, -1).Resize(src.body.rows.count, 1)
         If RangeIsMostlyText(probe) Or RangeIsDistinctCodes(probe) Then
             Set src.namesCol = probe
         End If
@@ -413,7 +413,7 @@ Public Sub DetectPanelSource(ByRef src As TPanelSource)
     ' Text months, or a row of real dates. A row of dates sitting above a
     ' numeric block is a period header - nothing else it could be.
     If src.periodRow Is Nothing And src.body.Row > 1 Then
-        Set probe = src.body.offset(-1, 0).Resize(1, src.body.Columns.Count)
+        Set probe = src.body.offset(-1, 0).Resize(1, src.body.Columns.count)
         If RangeIsMostlyText(probe) Or RangeIsAllDates(probe) Then
             Set src.periodRow = probe
         End If
@@ -587,7 +587,7 @@ Private Function RangeIsDistinctCodes(ByVal rg As Range) As Boolean
     Dim vals() As String
 
     If rg Is Nothing Then Exit Function
-    n = rg.Cells.Count
+    n = rg.Cells.count
     If n < 2 Then Exit Function
 
     ReDim vals(1 To n)
@@ -650,7 +650,7 @@ Private Function LabelsMatch(ByVal rg As Range, ByVal i As Long, _
                              ByVal j As Long) As Boolean
     If rg Is Nothing Then Exit Function
     If i < 1 Or j < 1 Then Exit Function
-    If i > rg.Cells.Count Or j > rg.Cells.Count Then Exit Function
+    If i > rg.Cells.count Or j > rg.Cells.count Then Exit Function
     LabelsMatch = (StrComp(CellLabel(rg.Cells(1, i)), _
                            CellLabel(rg.Cells(1, j)), vbTextCompare) = 0)
 End Function
@@ -660,7 +660,7 @@ End Function
 Private Function LabelsAllDistinct(ByVal rg As Range) As Boolean
     Dim i As Long, j As Long, a As String, b As String, n As Long
     If rg Is Nothing Then Exit Function
-    n = rg.Cells.Count
+    n = rg.Cells.count
     For i = 1 To n - 1
         a = CellLabel(rg.Cells(1, i))
         If Len(a) > 0 Then

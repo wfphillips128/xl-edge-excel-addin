@@ -346,7 +346,7 @@ Private Sub RefreshCompanyList()
 
     lstCompanies.Clear
     Dim i As Long
-    For i = 1 To mCompanies.Count
+    For i = 1 To mCompanies.count
         lstCompanies.AddItem mCompanies(i)
     Next i
 
@@ -522,12 +522,12 @@ Private Sub MoveCompany(ByVal delta As Long)
     i = lstCompanies.ListIndex + 1
     If i < 1 Then Exit Sub
     j = i + delta
-    If j < 1 Or j > mCompanies.Count Then Exit Sub
+    If j < 1 Or j > mCompanies.count Then Exit Sub
 
     Dim s As String
     s = mCompanies(i)
     mCompanies.Remove i
-    If j > mCompanies.Count Then
+    If j > mCompanies.count Then
         mCompanies.Add s
     Else
         mCompanies.Add s, , j
@@ -539,7 +539,7 @@ End Sub
 
 Private Sub ReplaceCompany(ByVal pos As Long, ByVal newName As String)
     mCompanies.Remove pos
-    If pos > mCompanies.Count Then
+    If pos > mCompanies.count Then
         mCompanies.Add newName
     Else
         mCompanies.Add newName, , pos
@@ -548,7 +548,7 @@ End Sub
 
 Private Function CompanyExists(ByVal s As String) As Boolean
     Dim i As Long
-    For i = 1 To mCompanies.Count
+    For i = 1 To mCompanies.count
         If StrComp(mCompanies(i), s, vbTextCompare) = 0 Then
             CompanyExists = True
             Exit Function
@@ -561,7 +561,7 @@ End Function
 ' ============================================================================
 
 Private Sub cmdSave_Click()
-    On Error GoTo failed
+    On Error GoTo Failed
 
     If Not AddInStorage.StorageReady() Then
         MsgBox "The add-in's reference sheet could not be found, so settings " & _
@@ -582,9 +582,9 @@ Private Sub cmdSave_Click()
 
     ' Collection -> 1-based array for the storage layer.
     Dim names As Variant
-    If mCompanies.Count > 0 Then
-        ReDim names(1 To mCompanies.Count)
-        For i = 1 To mCompanies.Count
+    If mCompanies.count > 0 Then
+        ReDim names(1 To mCompanies.count)
+        For i = 1 To mCompanies.count
             names(i) = mCompanies(i)
         Next i
     Else
@@ -611,7 +611,7 @@ Private Sub cmdSave_Click()
     Me.Hide                     ' Hide, not Unload -- see the Saved property below
     Exit Sub
 
-failed:
+Failed:
     MsgBox "Could not save settings." & vbCrLf & vbCrLf & _
            "Error " & Err.Number & ": " & Err.description, vbExclamation, "XL Edge Settings"
 End Sub

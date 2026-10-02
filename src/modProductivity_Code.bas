@@ -255,7 +255,7 @@ Sub ColumnWidthsPaste(control As IRibbonControl)
     Set src = Selection
     
     ' Disallow multi-area selections (e.g., Ctrl+Click disjoint ranges)
-    If src.Areas.Count > 1 Then
+    If src.Areas.count > 1 Then
         MsgBox "Please select a single, contiguous range (not multiple areas).", _
                vbExclamation, "Copy Column Widths"
         Exit Sub
@@ -276,7 +276,7 @@ Sub ColumnWidthsPaste(control As IRibbonControl)
     Set destTopLeft = Application.InputBox( _
         prompt:="Select the TOP-LEFT cell of the destination range." & vbCrLf & _
                 "The destination range will automatically resize to match the source selection (" & _
-                src.rows.Count & " rows x " & src.Columns.Count & " columns).", _
+                src.rows.count & " rows x " & src.Columns.count & " columns).", _
         title:="Copy Column Widths (No Clipboard)", _
         Type:=8)
     
@@ -293,21 +293,21 @@ Sub ColumnWidthsPaste(control As IRibbonControl)
     ' 3) Build destination range to match source dimensions
     '---------------------------------------------------
     ' Ensure destination will not exceed worksheet bounds.
-    If destTopLeft.Row + src.rows.Count - 1 > destWS.rows.Count Then
+    If destTopLeft.Row + src.rows.count - 1 > destWS.rows.count Then
         MsgBox "Destination range would extend past the bottom of the worksheet.", _
                vbCritical, "Copy Column Widths"
         Exit Sub
     End If
     
-    If destTopLeft.Column + src.Columns.Count - 1 > destWS.Columns.Count Then
+    If destTopLeft.Column + src.Columns.count - 1 > destWS.Columns.count Then
         MsgBox "Destination range would extend past the right edge of the worksheet.", _
                vbCritical, "Copy Column Widths"
         Exit Sub
     End If
     
     Set dest = destWS.Range(destTopLeft, _
-                            destWS.Cells(destTopLeft.Row + src.rows.Count - 1, _
-                                         destTopLeft.Column + src.Columns.Count - 1))
+                            destWS.Cells(destTopLeft.Row + src.rows.count - 1, _
+                                         destTopLeft.Column + src.Columns.count - 1))
     
     '----------------------------------------
     ' 4) Prevent overlap (only meaningful on same sheet)
@@ -328,7 +328,7 @@ Sub ColumnWidthsPaste(control As IRibbonControl)
     ' Copy each column width from source to destination.
     ' Note: ColumnWidth is a property of the entire column (not just the cells),
     ' and Excel applies it at the column level on the destination worksheet.
-    For i = 1 To src.Columns.Count
+    For i = 1 To src.Columns.count
         destWS.Columns(destTopLeft.Column + i - 1).ColumnWidth = _
             srcWS.Columns(src.Column + i - 1).ColumnWidth
     Next i
@@ -380,7 +380,7 @@ Sub ExactFormulaCopy(control As IRibbonControl)
     Set src = Selection
 
     ' Require a single contiguous block (no multi-area selections)
-    If src.Areas.Count > 1 Then
+    If src.Areas.count > 1 Then
         MsgBox "Please select a single, contiguous range (not multiple separate areas).", _
                vbExclamation, "Copy Formulas Exactly"
         Exit Sub
@@ -407,7 +407,7 @@ Sub ExactFormulaCopy(control As IRibbonControl)
     '-------------------------------------------------
     Set destTopLeft = Application.InputBox( _
         prompt:="Select the TOP-LEFT cell of the destination." & vbCrLf & _
-                "Destination will be resized to match source (" & src.rows.Count & " rows x " & src.Columns.Count & " columns).", _
+                "Destination will be resized to match source (" & src.rows.count & " rows x " & src.Columns.count & " columns).", _
         title:="Copy Formulas Exactly (No Clipboard)", _
         Type:=8)
 
@@ -421,21 +421,21 @@ Sub ExactFormulaCopy(control As IRibbonControl)
     ' 3) Build destination range to match source dimensions
     '    and ensure it stays within worksheet boundaries
     '-------------------------------------------------------
-    If destTopLeft.Row + src.rows.Count - 1 > destWS.rows.Count Then
+    If destTopLeft.Row + src.rows.count - 1 > destWS.rows.count Then
         MsgBox "Destination range would extend past the bottom of the worksheet.", _
                vbCritical, "Copy Formulas Exactly"
         Exit Sub
     End If
 
-    If destTopLeft.Column + src.Columns.Count - 1 > destWS.Columns.Count Then
+    If destTopLeft.Column + src.Columns.count - 1 > destWS.Columns.count Then
         MsgBox "Destination range would extend past the right edge of the worksheet.", _
                vbCritical, "Copy Formulas Exactly"
         Exit Sub
     End If
 
     Set dest = destWS.Range(destTopLeft, _
-                            destWS.Cells(destTopLeft.Row + src.rows.Count - 1, _
-                                         destTopLeft.Column + src.Columns.Count - 1))
+                            destWS.Cells(destTopLeft.Row + src.rows.count - 1, _
+                                         destTopLeft.Column + src.Columns.count - 1))
 
     '----------------------------------------
     ' 4) Prevent overlap (only on same sheet)
@@ -469,8 +469,8 @@ Sub ExactFormulaCopy(control As IRibbonControl)
     ' - We assign .Formula cell-by-cell to preserve the literal A1-style text.
     ' - We do NOT use .Copy or clipboard.
     ' - If a source cell has no formula, destination cell is cleared.
-    For r = 1 To src.rows.Count
-        For c = 1 To src.Columns.Count
+    For r = 1 To src.rows.count
+        For c = 1 To src.Columns.count
 
             Set srcCell = src.Cells(r, c)
             Set destCell = dest.Cells(r, c)
@@ -619,7 +619,7 @@ Sub FormatLightUnderlinetoSelectedRange(control As IRibbonControl)
 Dim intArea As Long
 Dim rngCell As Range
  
-    For intArea = 1 To Selection.Areas.Count
+    For intArea = 1 To Selection.Areas.count
         For Each rngCell In Selection.Areas(intArea).Cells
             With rngCell.Borders(xlEdgeBottom)
                 .LineStyle = xlDash
@@ -718,7 +718,7 @@ Sub UnmergedCellsToCenterAcross(control As IRibbonControl)
             Set mergedArea = c.MergeArea
 
             ' Only handle horizontal merges (one row high)
-            If mergedArea.rows.Count = 1 Then
+            If mergedArea.rows.count = 1 Then
                 addr = mergedArea.Address
 
                 ' Process each merged area only once
@@ -1176,7 +1176,7 @@ Sub RemoveEmptyRows(control As IRibbonControl)
 
     If Not GetSelectionRange(rg, True, TITLE_TXT) Then Exit Sub
 
-    If rg.rows.Count > 20000 Then
+    If rg.rows.count > 20000 Then
         Set clipped = Intersect(rg, rg.Worksheet.UsedRange)
         If clipped Is Nothing Then
             MsgBox "The selection holds no data, so there is nothing to remove.", _
@@ -1186,7 +1186,7 @@ Sub RemoveEmptyRows(control As IRibbonControl)
         Set rg = clipped
     End If
 
-    For i = 1 To rg.rows.Count
+    For i = 1 To rg.rows.count
         If IsBlankRange(rg.rows(i)) Then
             If unionRows Is Nothing Then
                 Set unionRows = rg.rows(i).EntireRow
@@ -1254,7 +1254,7 @@ Sub replaceBlankWithZero(control As IRibbonControl)
 
     If Not blanks Is Nothing Then
         blanks.value = 0
-        n = n + blanks.Cells.Count
+        n = n + blanks.Cells.count
     End If
 
     ' The old macro also zeroed cells holding a single space, so keep that.
@@ -1418,7 +1418,7 @@ Sub ClearExcessRowsAndColumns(control As IRibbonControl)
     'A whole-column or whole-row selection would otherwise mean a million
     'CountA calls. Clip to the used range first -- everything outside it is
     'blank by definition, and deleting a million empty rows achieves nothing.
-    If rg.rows.Count > 20000 Or rg.Columns.Count > 2000 Then
+    If rg.rows.count > 20000 Or rg.Columns.count > 2000 Then
         Set clipped = Intersect(rg, rg.Worksheet.UsedRange)
         If clipped Is Nothing Then
             MsgBox "The selection holds no data, so there is nothing to remove.", _
@@ -1430,7 +1430,7 @@ Sub ClearExcessRowsAndColumns(control As IRibbonControl)
 
     'Pass one: collect only. Deleting as we go would shift every index that
     'has not been tested yet, which is what makes the naive version skip rows.
-    For i = 1 To rg.rows.Count
+    For i = 1 To rg.rows.count
         If IsBlankRange(rg.rows(i)) Then
             If unionRows Is Nothing Then
                 Set unionRows = rg.rows(i).EntireRow
@@ -1441,7 +1441,7 @@ Sub ClearExcessRowsAndColumns(control As IRibbonControl)
         End If
     Next i
 
-    For i = 1 To rg.Columns.Count
+    For i = 1 To rg.Columns.count
         If IsBlankRange(rg.Columns(i)) Then
             If unionCols Is Nothing Then
                 Set unionCols = rg.Columns(i).EntireColumn
@@ -2355,13 +2355,13 @@ Sub ExcelShrinkFile(control As IRibbonControl)
             If lastCol = 0 Then lastCol = 1
 
             '--- Delete unused columns
-            If lastCol < .Columns.Count Then
-                .Range(.Cells(1, lastCol + 1), .Cells(1, .Columns.Count)).EntireColumn.Delete
+            If lastCol < .Columns.count Then
+                .Range(.Cells(1, lastCol + 1), .Cells(1, .Columns.count)).EntireColumn.Delete
             End If
 
             '--- Delete unused rows
-            If lastRow < .rows.Count Then
-                .Range(.Cells(lastRow + 1, 1), .Cells(.rows.Count, 1)).EntireRow.Delete
+            If lastRow < .rows.count Then
+                .Range(.Cells(lastRow + 1, 1), .Cells(.rows.count, 1)).EntireRow.Delete
             End If
 
         End With
