@@ -526,7 +526,7 @@ End Property
 
 Private Sub Place(ByVal c As Object, ByVal x As Single, ByVal y As Single, _
                   ByVal w As Single, ByVal h As Single)
-    c.Left = x: c.Top = y: c.width = w: c.Height = h
+    c.Left = x: c.top = y: c.width = w: c.Height = h
 End Sub
 
 Private Function AddLabel(ByVal nm As String, ByVal x As Single, ByVal y As Single, _

@@ -267,7 +267,7 @@ End Function
 ' expressions as defaults, and an omitted object parameter is Nothing anyway.)
 Public Function AddEntriesToWorkbook(ByVal entries As Collection, _
                                      ByVal wb As Workbook, _
-                                     Optional ByVal Failed As Collection, _
+                                     Optional ByVal failed As Collection, _
                                      Optional ByVal wrapped As Collection) As Long
     If wb Is Nothing Then Exit Function
 
@@ -300,13 +300,13 @@ Public Function AddEntriesToWorkbook(ByVal entries As Collection, _
 
     ' Report WHY, not just WHICH. "FILL (error 1004 - ...)" points at the cause;
     ' a bare list of names sends you back to guessing.
-    If Not Failed Is Nothing Then
+    If Not failed Is Nothing Then
         For Each e In entries
             If Not done.Exists(CStr(e(0))) Then
                 If Len(reasons(CStr(e(0)))) > 0 Then
-                    Failed.Add CStr(e(0)) & " (" & reasons(CStr(e(0))) & ")"
+                    failed.Add CStr(e(0)) & " (" & reasons(CStr(e(0))) & ")"
                 Else
-                    Failed.Add CStr(e(0))
+                    failed.Add CStr(e(0))
                 End If
             End If
         Next e

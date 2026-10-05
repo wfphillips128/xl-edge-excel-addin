@@ -65,7 +65,7 @@ Public Function PanelDrawChart(ByVal ws As Worksheet, ByRef sp As TPanelSpec, _
     mAnnotationSeries = 0
 
     Set anchor = ws.Cells(ly.chartRow, 1)
-    Set obj = ws.ChartObjects.Add(anchor.Left, anchor.Top, chartW, chartH)
+    Set obj = ws.ChartObjects.Add(anchor.Left, anchor.top, chartW, chartH)
     obj.Placement = xlFreeFloating
     Set ch = obj.Chart
 
@@ -153,7 +153,7 @@ Public Function PanelDrawChart(ByVal ws As Worksheet, ByRef sp As TPanelSpec, _
             ch.chartTitle.text = KindLabel(sp.kind) & " panel chart - " & _
                                  sp.rows & " x " & sp.cols
         End If
-        ch.chartTitle.Font.Size = 12
+        ch.chartTitle.Font.size = 12
         ch.chartTitle.Font.bold = True
     Else
         ch.HasTitle = False
@@ -410,7 +410,7 @@ Private Sub LabelPoints(ByVal ws As Worksheet, ByRef sp As TPanelSpec, _
     ' grid is 240 points; this halves the COM traffic and applies to exactly
     ' the labels that exist.
     On Error Resume Next
-    ser.DataLabels.Font.Size = st.labelSize
+    ser.DataLabels.Font.size = st.labelSize
     ser.DataLabels.Font.name = "Arial"
     Err.Clear
     On Error GoTo 0
@@ -544,7 +544,7 @@ Private Sub EmitAnnotation(ByVal ws As Worksheet, ByRef sp As TPanelSpec, _
                         dl.formula = "='" & sheetRef(ws) & "'!" & _
                             ws.Cells(an.r0 + offset + i, an.labCol).Address(True, True)
                         dl.Position = labelPos
-                        dl.Font.Size = labelSize
+                        dl.Font.size = labelSize
                         dl.Font.bold = bold
                     End If
                 End If
@@ -592,7 +592,7 @@ Private Sub SetAxes(ByVal ch As Chart, ByRef sp As TPanelSpec)
     Set ca = ch.Axes(xlCategory, xlPrimary)
     ca.TickLabelPosition = xlLow
     ca.MajorTickMark = xlTickMarkNone
-    ca.TickLabels.Font.Size = 8
+    ca.TickLabels.Font.size = 8
     On Error Resume Next
     ca.Format.Line.ForeColor.RGB = GREY_AXIS
     Err.Clear
@@ -658,7 +658,7 @@ Private Sub SetLegend(ByVal ch As Chart, ByRef sp As TPanelSpec)
 
     ch.HasLegend = True
     ch.Legend.Position = xlLegendPositionTop
-    ch.Legend.Font.Size = 9
+    ch.Legend.Font.size = 9
 
     If PS_Stacked(sp) Then first = 2 Else first = 1
     last = first + sp.Elements - 1

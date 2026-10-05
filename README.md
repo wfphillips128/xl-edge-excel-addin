@@ -15,8 +15,8 @@ Free to use and free to modify. MIT licensed. No sign-up, no trial, no marketing
 > `LAMBDA` (Microsoft 365 / Excel 2024). This is a `.xlam` add-in; there is no
 > Mac or web build.
 
-**Overview in PDF:** a 9-page [brochure](docs/XL-Edge-brochure.pdf) (US Letter,
-for printing or email) and a 12-page [carousel](docs/XL-Edge-carousel.pdf)
+**Overview in PDF:** a 10-page [brochure](docs/XL-Edge-brochure.pdf) (US Letter,
+for printing or email) and a 13-page [carousel](docs/XL-Edge-carousel.pdf)
 (the LinkedIn version).
 
 ---
@@ -91,28 +91,32 @@ the geometry with every workbook closed.
 
 ### Monte Carlo
 
-Five items on the **Tools** menu, directly under Create Panel Chart, put Monte
+Four items on the **Tools** menu, directly under Create Panel Chart, put Monte
 Carlo simulation into a workbook as **native LAMBDA formulas**, from the inputs
 through to a finished chart. The functions are modern versions of the
-distribution functions in tools such as XLRisk and @RISK.
+distribution functions in tools such as XLRisk and @RISK. Two more,
+[Time Series](#time-series) and [Statistical Diagnostics](#statistical-diagnostics),
+follow below.
 
-> **New in 2.21:** **copulas** for correlated inputs, **native Excel charts**
-> (histogram + S-curve, P10 / P50 / P90 outcome histogram, tornado), and
-> **statistics for several variables at once**. The library is now **v0.6.0
-> (79 functions)**, and it **ships inside the add-in**: each command installs
-> only the functions it needs into the workbook, offline. See the
-> [changelog](CHANGELOG.md), which also lists the breaking changes to the
-> statistics blocks.
+> **New in 2.31:** **time series** — seven path simulators, a fit for each, and
+> **seasonal ARIMA** forecasting with a band — **statistical diagnostics**, a
+> **fan chart**, the **metalog** distributions (41 in all), and **utility /
+> certainty equivalent**. The library is now **v0.7.0 (136 functions)**,
+> bundled in the add-in and installed on demand, offline. Models now
+> **recalculate only when their inputs change**. See the
+> [changelog](CHANGELOG.md) for the breaking changes.
 
-![The Tools menu open on Insert Monte Carlo Distribution, with the Continuous fly-out showing a grid of thirty distributions from beta and Cauchy to truncated normal, uniform and Weibull](xl-edge-monte-carlo.png)
+![The Tools menu open on Insert Monte Carlo Distribution, with the Continuous fly-out showing a grid of thirty-two distributions from beta and Cauchy to metalog, truncated normal, uniform and Weibull](xl-edge-monte-carlo.png)
 
-- **Insert Monte Carlo Distribution ▸** — pick from 39 distributions, each with
+- **Insert Monte Carlo Distribution ▸** — pick from 41 distributions, each with
   a small picture of its shape:
-  - *Continuous (30):* Beta, Cauchy, Chi-squared, Cumulative, Erlang,
+  - *Continuous (32):* Beta, Cauchy, Chi-squared, Cumulative, Erlang,
     Exponential, F, Gamma, Gumbel, Half-Cauchy, Half-normal, Half-Student t,
     Inverse chi-squared, Inverse gamma, Inverse Gaussian, Laplace, Logistic,
-    Lognormal, Noncentral beta, Noncentral F, Noncentral t, Normal, Pareto,
-    PERT, Skew normal, Student t, Triangular, Truncated normal, Uniform, Weibull
+    Lognormal, Metalog, Noncentral beta, Noncentral F, Noncentral t, Normal,
+    Pareto, PERT, Skew normal, SPT metalog, Student t, Triangular, Truncated
+    normal, Uniform, Weibull. The **metalog** is fitted to a range of data or to
+    quantiles; the **SPT metalog** to a P10 / P50 / P90 estimate.
   - *Discrete (9):* Benford, Bernoulli, Binomial, Discrete, Discrete Uniform,
     Geometric, Hypergeometric, Negative Binomial, Poisson
 
@@ -142,11 +146,16 @@ distribution functions in tools such as XLRisk and @RISK.
     confidence level you choose. Trials are read as P&L unless you say they are
     losses; either way the loss is reported as a positive number.
 
+  ![The Insert Monte Carlo Statistics fly-out: Statistics and Detailed Statistics for a single variable, the Variables Table and Variables Table (Detailed), Histogram Data and Risk Measures](xl-edge-monte-carlo-stats.png)
+
 - **Insert Monte Carlo Chart ▸** — writes the chart data and draws a **native
   Excel chart** from it, with the title linked to a cell, so it redraws when the
   model, seed or bin count changes: **Histogram + S-Curve**, **Outcome
-  Histogram (P10 / P50 / P90)** and **Tornado (Sensitivity)** (select the output
-  first, then Ctrl-click each input).
+  Histogram (P10 / P50 / P90)**, **Tornado (Sensitivity)** (select the output
+  first, then Ctrl-click each input) and **Fan Chart (Time Series)** (see
+  [Time Series](#time-series)).
+
+  ![The Insert Monte Carlo Chart fly-out: Histogram + S-Curve, Outcome Histogram (P10 / P50 / P90), Tornado (Sensitivity) and Fan Chart (Time Series)](xl-edge-monte-carlo-charts.png)
 
   <table>
   <tr>
@@ -166,23 +175,84 @@ distribution functions in tools such as XLRisk and @RISK.
   and orange its highest; cost runs the other way because higher cost lowers
   profit.*
 
-- **Install or Update Monte Carlo Library** — installs from the copy **bundled
-  in the add-in** (no internet needed): **Yes** installs what the workbook's
+- **Install or Update Monte Carlo and Statistical Tools Library** — installs
+  from the copy **bundled in the add-in** (no internet needed): **Yes** installs what the workbook's
   formulas use, **No** installs the full library. You rarely need it, because
   every command above installs what it uses as it goes.
 
 Each distribution is a **non-volatile dynamic array**: one cell spills every
-trial, and the trials do not reshuffle when something unrelated recalculates,
-because the randomness is keyed to a seed rather than to `RAND`. The add-in only
+trial, and a model recalculates only when its own inputs change, because the
+randomness is keyed to a seed rather than to `RAND`. (For live resampling, pass
+`fx.RiskRandλ(Trials)` as a distribution's `Trials`; the old `"RAND"` method of
+`fx.RiskUλ` is retired.) The add-in only
 *writes* the formulas — the functions themselves are defined names inside the
 workbook — so a finished model keeps calculating for people who have never
 installed XL Edge.
 
-The library is also published on its own as a public
-[gist](https://gist.github.com/wfphillips128/f91bff77212ab2c3d8f55a4f0a51b8b6)
-for anyone without the add-in. The full function reference, conventions and
-attribution are on the
-[project page](https://edgewisedata.com/projects/monte-carlo-lambdas).
+The library is also published as two public gists for anyone without the
+add-in: the
+[Monte Carlo gist](https://gist.github.com/wfphillips128/f91bff77212ab2c3d8f55a4f0a51b8b6)
+(90 functions) and the
+[Time Series & Statistics gist](https://gist.github.com/wfphillips128/96171c91caba82aa708b12b9f8f575ce)
+(54). Each is self-contained, and both can go into one workbook. The full
+function reference, conventions and attribution are on the
+[Monte Carlo](https://edgewisedata.com/projects/monte-carlo-lambdas) and
+[Time Series and Statistical LAMBDAs](https://edgewisedata.com/projects/time-series-lambdas)
+project pages.
+
+### Time Series
+
+**Tools → Insert Time Series ▸** simulates values over time — prices, rates,
+volumes, returns — as **paths: one row per trial, one column per period**, from
+a single cell.
+
+![The Insert Time Series fly-out in three groups: Simulate paths (GBM, jump-diffusion, OU, CIR, ARMA, ARIMA, GARCH / GJR); Fit to a history (a fit for each); and Seasonal ARIMA (fit, forecast table, simulated paths, backtest, rank orders)](xl-edge-time-series.png)
+
+- **Simulate paths** — geometric Brownian motion, jump-diffusion (Merton), mean
+  reversion (Ornstein-Uhlenbeck), square-root mean reversion (CIR), ARMA,
+  ARIMA (p, 1, q) and GARCH / GJR returns, with optional fat-tailed Student t
+  shocks.
+- **Fit to a history** — a Parameter / Estimate block for each model, from your
+  data; point the simulator's arguments at it.
+- **Seasonal ARIMA (SARIMA)** — for monthly or other seasonal series: fit a
+  model (the airline model by default), write a **forecast table with a P10–P90
+  band**, simulate continuations, **backtest** against held-out periods, and
+  **rank** twelve candidate orders by AIC.
+
+Any block of paths feeds **Insert Monte Carlo Chart → Fan Chart**: the P10–P90
+band over time, the median, and an optional plan line.
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="ts-sarima-forecast.png" alt="Three years of monthly sales and a 24-month SARIMA forecast continuing the seasonal pattern between dashed P10 and P90 lines"></td>
+<td width="50%" valign="top"><img src="ts-chart-fan.png" alt="A fan chart of monthly revenue: a shaded P10 to P90 band, a median line and a dashed plan line above it"></td>
+</tr>
+<tr>
+<td align="center"><em>SARIMA forecast</em></td>
+<td align="center"><em>Fan Chart</em></td>
+</tr>
+</table>
+
+*Illustrative; synthetic data.*
+
+### Statistical Diagnostics
+
+**Tools → Insert Statistical Diagnostics ▸** checks a table of history (one
+variable per column), or several simulated results side by side, before you
+trust them as model inputs. Each writes one labelled block, and XL Edge checks
+there is room for it first.
+
+![The Insert Statistical Diagnostics fly-out: Correlation Matrix, Covariance Matrix, Normality Tests, Multicollinearity (VIF), Eigenvalues and Condition Number, and Outliers and Leverage](xl-edge-diagnostics.png)
+
+- **Correlation Matrix** (Pearson or Spearman, with R², p-values or significance
+  below the diagonal) and **Covariance Matrix**. The bare correlation matrix
+  feeds straight into the Gaussian copula.
+- **Normality Tests** — Shapiro-Wilk, Anderson-Darling and Jarque-Bera, each
+  with a p-value and a verdict.
+- **Multicollinearity (VIF)**, **Eigenvalues and Condition Number**, and
+  **Outliers and Leverage** (Mahalanobis distance and hat-matrix leverage).
+
+![A correlation matrix with p-values below the diagonal, and a multicollinearity block of VIF, tolerance and R squared, for five synthetic variables](ts-diagnostics.png)
 
 ### Productivity Tools
 
@@ -199,8 +269,9 @@ the ribbon:
   parentheses / sign-flip, convert to absolute or relative references, change
   `SUM` to `SUBTOTAL`, list a formula as text, trim/prefix/suffix text, scale a
   range by 1000 or by a selected value, change case, and more.
-- **Tools** — **create a panel chart** and the five **Monte Carlo** items (above:
-  distribution, copula, statistics, chart, install/update),
+- **Tools** — **create a panel chart**, the **Monte Carlo** items (above:
+  distribution, copula, statistics, chart), **statistical diagnostics**, **time
+  series**, and install/update the library,
   speak cell contents, toggle
   gridlines, unmerge & center across,
   copy sheets to a new file without formulas, remove formulas from a
@@ -211,7 +282,7 @@ the ribbon:
 <tr>
 <td width="33%" valign="top"><img src="xl-edge-format-tools.png" alt="The Format Tools menu: number-scale and date toggles, financial formatting presets, font, colour, fill and indent toggles, remove empty rows and columns, and row-height / column-width commands"></td>
 <td width="33%" valign="top"><img src="xl-edge-formula-tools.png" alt="The Formula Tools menu: fill right and down, list formula as text, wrap with ROUND / IFERROR / parentheses / flip sign, absolute and relative refs, SUM to SUBTOTAL, text trim and prefix / suffix, scale by 1000, and case changes"></td>
-<td width="33%" valign="top"><img src="xl-edge-tools.png" alt="The Tools menu: create panel chart, the five Monte Carlo items (insert distribution, copula, statistics or chart, each a fly-out, and install or update the library), speak cell contents, expand formula bar, toggle grid, unmerge and center across, copy sheets without formulas, remove formulas, shrink file, and jumps to the macro dialog, VBA editor and add-in location"></td>
+<td width="33%" valign="top"><img src="xl-edge-tools.png" alt="The Tools menu: create panel chart, insert a Monte Carlo distribution, copula, statistics or chart, statistical diagnostics or time series (each a fly-out), install or update the Monte Carlo and statistical tools library, speak cell contents, expand formula bar, toggle grid, unmerge and center across, copy sheets without formulas, remove formulas, shrink file, and jumps to the macro dialog, VBA editor and add-in location"></td>
 </tr>
 <tr>
 <td align="center"><em>Format Tools</em></td>

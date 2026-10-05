@@ -1,6 +1,7 @@
 Attribute VB_Name = "modMonteCarloCharts"
 ' =============================================================================
-' modMonteCarloCharts - draws the three Monte Carlo charts. No user interface.
+' modMonteCarloCharts - draws the Monte Carlo charts. No user interface.
+' Copyright (c) 2026 W Phillips, edgewisedata.com. MIT License.
 '
 ' The numbers never live here. Each chart reads a block spilled by one of the
 ' library's chart-data LAMBDAs:
@@ -9,6 +10,8 @@ Attribute VB_Name = "modMonteCarloCharts"
 '                        P10 / P50 / P90 lines, then one row per bin (center,
 '                        edges, in-band, tail, count, cum %, right-edge X)
 '   fx.RiskTornado       the title, then one row per input, largest effect first
+'   fx.RiskChartFan      the title, a header, then one row per period of a block
+'                        of paths (Period, Lower, P50, Upper, band width, Plan, Mean)
 '
 ' TITLES ARE LINKED. Both blocks start with a title row (the tornado's subtitle
 ' sits beside its title), and the chart's title is a formula pointing at that
@@ -23,7 +26,12 @@ Attribute VB_Name = "modMonteCarloCharts"
 ' names instead - McChN_Cat, McChN_Band, ... - each one column of the spill:
 '     =INDEX(Sheet!$J$2#, 7, 4):INDEX(Sheet!$J$2#, ROWS(Sheet!$J$2#), 4)
 ' Change Bins and the chart redraws with the new bins, nothing to re-insert.
-' The tornado keeps plain ranges: its size is fixed by the inputs picked.
+' The tornado keeps plain ranges: its size is fixed by the inputs picked. The
+' fan chart reads its columns through hidden names too (McChN_Per, _Lo, ...),
+' so a change of Periods, or a Start added, redraws it.
+' The FAN's legend is linked to the block's header cells, which are formulas of
+' the band's percentiles: change Lower or Upper in the formula and the band, the
+' headers and the legend all follow.
 '
 ' THE ALIGNMENT CONTRACT. Percentile lines and the S-curve are XY scatter series
 ' on the SECONDARY axes, drawn over a column chart. With the secondary x axis
@@ -62,6 +70,13 @@ Private Const COL_TAIL As Long = 5
 Private Const COL_COUNT As Long = 6
 Private Const COL_CUM As Long = 7
 Private Const COL_EDGE_X As Long = 8
+
+' Columns of the fx.RiskChartFan period rows.
+Private Const FAN_PERIOD As Long = 1
+Private Const FAN_LOWER As Long = 2
+Private Const FAN_MEDIAN As Long = 3
+Private Const FAN_BAND As Long = 5
+Private Const FAN_PLAN As Long = 6
 
 
 ' --- the three charts --------------------------------------------------------
@@ -186,12 +201,70 @@ Public Function McDrawTornado(ByVal ws As Worksheet, ByVal titleCell As Range, _
         .TickLabelPosition = xlTickLabelPositionLow ' names at the left, not at 0
         .MajorTickMark = xlTickMarkNone
         .TickLabels.Font.color = C_INK
-        .TickLabels.Font.Size = 10
+        .TickLabels.Font.size = 10
     End With
     StyleValueAxis ch.Axes(xlValue, xlPrimary)
     LinkTitle ch, titleCell
     LinkSubtitle ch, titleCell.offset(0, 1)
     Set McDrawTornado = obj
+End Function
+
+' Fan chart from an fx.RiskChartFan block; block is its first cell (the title).
+' The band is a stacked area - an invisible base up to the lower percentile, the
+' band's width on top - with P50 drawn over it, and the user's single-number Plan
+' as a dashed line when the block has one (hasPlan). The Mean stays in the block
+' but is not drawn. The value axis is left to Excel: like every Excel chart it
+' starts at 0 for data such as prices, and so it never goes stale as the model
+' changes. (Zoom by hand in Format Axis if wanted.)
+Public Function McDrawFan(ByVal ws As Worksheet, ByVal block As Range, ByVal hasPlan As Boolean, _
+                          ByVal atLeft As Double, ByVal atTop As Double) As ChartObject
+    Dim obj As ChartObject, ch As Chart, ser As Series
+    Dim tag As String, cat As String
+    Dim hdr As Range
+
+    Set obj = NewChart(ws, atLeft, atTop, xlAreaStacked)
+    Set ch = obj.Chart
+    tag = NewTag(ws, obj)
+    Set hdr = block.offset(1, 0)
+    cat = FanColumn(ws, block, tag, "Per", FAN_PERIOD)
+
+    Set ser = ch.SeriesCollection.NewSeries
+    ser.name = "Base"
+    ser.XValues = cat
+    ser.Values = FanColumn(ws, block, tag, "Lo", FAN_LOWER)
+    ser.Format.Fill.Visible = msoFalse
+    ser.Format.Line.Visible = msoFalse
+
+    Set ser = ch.SeriesCollection.NewSeries
+    ser.name = "=" & hdr.offset(0, FAN_BAND - 1).Address(External:=True)
+    ser.XValues = cat
+    ser.Values = FanColumn(ws, block, tag, "Band", FAN_BAND)
+    ser.Format.Fill.ForeColor.RGB = C_ACCENT
+    ser.Format.Fill.Transparency = 0.45
+    ser.Format.Line.Visible = msoFalse
+
+    AddFanLine ch, cat, FanColumn(ws, block, tag, "Med", FAN_MEDIAN), _
+               hdr.offset(0, FAN_MEDIAN - 1), C_ACTION, msoLineSolid, 2.75
+    If hasPlan Then
+        AddFanLine ch, cat, FanColumn(ws, block, tag, "Plan", FAN_PLAN), _
+                   hdr.offset(0, FAN_PLAN - 1), C_INK, msoLineDash, 2.25
+    End If
+
+    With ch.Axes(xlCategory, xlPrimary)
+        .AxisBetweenCategories = False                ' the band runs edge to edge
+        .MajorTickMark = xlTickMarkOutside
+        .TickLabels.Font.color = C_MUTED
+        .TickLabels.Font.size = 9
+        .Format.Line.ForeColor.RGB = C_INK
+    End With
+    StyleValueAxis ch.Axes(xlValue, xlPrimary)
+    ch.Axes(xlValue, xlPrimary).TickLabels.NumberFormat = FanNumberFormat(block)
+    LinkTitle ch, block
+    ch.HasLegend = True
+    ch.Legend.Position = xlLegendPositionBottom
+    ch.Legend.Font.color = C_MUTED
+    ch.Legend.LegendEntries(1).Delete                 ' the invisible base
+    Set McDrawFan = obj
 End Function
 
 
@@ -228,20 +301,70 @@ End Function
 
 ' A series reference to one column of the bins in a fx.RiskChartHist spill,
 ' through a hidden sheet-level name that follows the spill as Bins changes.
-' Creates the name the first time it is asked for. col counts from 1.
+' Creates the name the first time it is asked for. col counts from 1. headRows
+' is how many rows sit above the data (default: the histogram's).
 Private Function BinColumn(ByVal ws As Worksheet, ByVal block As Range, ByVal tag As String, _
-                           ByVal key As String, ByVal col As Long) As String
+                           ByVal key As String, ByVal col As Long, _
+                           Optional ByVal headRows As Long = -1) As String
     Dim sheetRef As String, spill As String, nm As String
+    If headRows < 0 Then headRows = modMonteCarlo.MC_CHART_HEAD_ROWS
     sheetRef = "'" & Replace(ws.name, "'", "''") & "'!"
     spill = sheetRef & block.Cells(1, 1).Address & "#"
     nm = tag & "_" & key
     If Not SheetNameExists(ws, nm) Then
         ws.names.Add name:=nm, Visible:=False, _
-            RefersTo:="=INDEX(" & spill & "," & (modMonteCarlo.MC_CHART_HEAD_ROWS + 1) & "," & col & _
+            RefersTo:="=INDEX(" & spill & "," & (headRows + 1) & "," & col & _
                       "):INDEX(" & spill & ",ROWS(" & spill & ")," & col & ")"
     End If
     BinColumn = "=" & sheetRef & nm
 End Function
+
+'' Value-axis labels sized to the numbers as they are when drawn, judged from the
+' band's top in the last period: 300k for thousands, 1.5M for millions. Only the
+' FORMAT is fixed; the labels themselves still follow the model.
+Private Function FanNumberFormat(ByVal block As Range) As String
+    Dim top As Double
+    On Error Resume Next
+    top = Abs(block.SpillingToRange.Cells(block.SpillingToRange.rows.count, 4).Value2)
+    On Error GoTo 0
+    If top >= 10000000# Then
+        FanNumberFormat = "#,##0,,""M"""
+    ElseIf top >= 1000000# Then
+        FanNumberFormat = "#,##0.0,,""M"""
+    ElseIf top >= 10000# Then
+        FanNumberFormat = "#,##0,""k"""
+    ElseIf top >= 100# Then
+        FanNumberFormat = "#,##0"
+    Else
+        FanNumberFormat = "General"
+    End If
+End Function
+
+' The same, for one column of an fx.RiskChartFan block's period rows.
+Private Function FanColumn(ByVal ws As Worksheet, ByVal block As Range, ByVal tag As String, _
+                           ByVal key As String, ByVal col As Long) As String
+    FanColumn = BinColumn(ws, block, tag, key, col, modMonteCarlo.MC_FAN_HEAD_ROWS)
+End Function
+
+' A line over the fan's band, on the primary axes, named by a header cell so the
+' legend follows the block.
+Private Sub AddFanLine(ByVal ch As Chart, ByVal xRef As String, ByVal yRef As String, _
+                       ByVal nameCell As Range, ByVal color As Long, _
+                       ByVal dash As MsoLineDashStyle, ByVal weight As Single)
+    Dim ser As Series
+    Set ser = ch.SeriesCollection.NewSeries
+    ser.ChartType = xlLine
+    ser.name = "=" & nameCell.Address(External:=True)
+    ser.XValues = xRef
+    ser.Values = yRef
+    ser.markerStyle = xlMarkerStyleNone
+    With ser.Format.Line
+        .Visible = msoTrue
+        .ForeColor.RGB = color
+        .weight = weight
+        .DashStyle = dash
+    End With
+End Sub
 
 ' Sheet-level names report themselves as "Sheet!name", so match on the part
 ' after the "!".
@@ -330,7 +453,7 @@ Private Sub LabelTopPoint(ByVal ser As Series, ByVal labelCell As Range, _
     pt.DataLabel.Position = pos
     pt.DataLabel.Font.color = color
     pt.DataLabel.Font.bold = True
-    pt.DataLabel.Font.Size = 10
+    pt.DataLabel.Font.size = 10
 End Sub
 
 ' Data label on every bar, linked to the matching cell in a column of the block.
@@ -343,7 +466,7 @@ Private Sub LabelEachPoint(ByVal ser As Series, ByVal firstCell As Range, ByVal 
         Set pt = ser.Points(i)
         pt.HasDataLabel = True
         pt.DataLabel.formula = "=" & firstCell.offset(i - 1, 0).Address(External:=True)
-        pt.DataLabel.Font.Size = 9
+        pt.DataLabel.Font.size = 9
         If inside Then
             pt.DataLabel.Position = xlLabelPositionInsideEnd
             pt.DataLabel.Font.color = C_WHITE
@@ -401,13 +524,13 @@ Private Sub StyleCategoryAxis(ByVal ch As Chart, ByVal block As Range)
     ax.MajorTickMark = xlTickMarkOutside
     ax.TickLabels.NumberFormat = IIf(biggest >= 100, "#,##0", IIf(biggest >= 1, "#,##0.0", "0.000"))
     ax.TickLabels.Font.color = C_MUTED
-    ax.TickLabels.Font.Size = 9
+    ax.TickLabels.Font.size = 9
     ax.Format.Line.ForeColor.RGB = C_INK
 End Sub
 
 Private Sub StyleValueAxis(ByVal ax As Axis)
     ax.TickLabels.Font.color = C_MUTED
-    ax.TickLabels.Font.Size = 9
+    ax.TickLabels.Font.size = 9
     ax.MajorTickMark = xlTickMarkNone
     HideLine ax
     If ax.HasMajorGridlines Then
@@ -423,7 +546,7 @@ Private Sub LinkTitle(ByVal ch As Chart, ByVal titleCell As Range)
     ch.chartTitle.formula = "=" & titleCell.Address(External:=True)
     With ch.chartTitle.Font
         .color = C_INK
-        .Size = TITLE_PT
+        .size = TITLE_PT
         .bold = True
     End With
     ch.chartTitle.HorizontalAlignment = xlLeft
@@ -436,7 +559,7 @@ Private Sub LinkSubtitle(ByVal ch As Chart, ByVal subtitleCell As Range)
     Dim shp As Shape
     Dim boxTop As Double, newTop As Double
 
-    boxTop = ch.chartTitle.Top + ch.chartTitle.Height - 2
+    boxTop = ch.chartTitle.top + ch.chartTitle.Height - 2
     Set shp = ch.shapes.AddTextbox(msoTextOrientationHorizontal, ch.chartTitle.Left + 2, boxTop, _
                                    ch.ChartArea.width - ch.chartTitle.Left - 18, SUBTITLE_PT * 2)
     shp.name = "McSubtitle"
@@ -451,16 +574,16 @@ Private Sub LinkSubtitle(ByVal ch As Chart, ByVal subtitleCell As Range)
         .MarginBottom = 0
         .TextRange.ParagraphFormat.Alignment = msoAlignLeft
         With .TextRange.Font
-            .Size = SUBTITLE_PT
+            .size = SUBTITLE_PT
             .bold = msoFalse
             .Fill.ForeColor.RGB = C_MUTED
         End With
     End With
 
     newTop = boxTop + shp.Height + 6
-    If ch.PlotArea.Top < newTop Then
-        ch.PlotArea.Height = ch.PlotArea.Height - (newTop - ch.PlotArea.Top)
-        ch.PlotArea.Top = newTop
+    If ch.PlotArea.top < newTop Then
+        ch.PlotArea.Height = ch.PlotArea.Height - (newTop - ch.PlotArea.top)
+        ch.PlotArea.top = newTop
     End If
 End Sub
 

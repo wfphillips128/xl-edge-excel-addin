@@ -906,7 +906,7 @@ Sub InsertSymbol(control As IRibbonControl)
             
             ' Format ONLY the last character (the symbol)
             .Characters(Start:=startPos, Length:=1).Font.ColorIndex = symbColorIndex
-            .Characters(Start:=startPos, Length:=1).Font.Size = symbFontSize
+            .Characters(Start:=startPos, Length:=1).Font.size = symbFontSize
         End With
     Next cel
 End Sub

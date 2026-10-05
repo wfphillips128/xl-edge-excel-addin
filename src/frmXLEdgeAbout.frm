@@ -55,14 +55,14 @@ Private Sub BuildLayout()
 
     Set lblTitle = Me.Controls.Add("Forms.Label.1", "lblTitle", True)
     With lblTitle
-        .Left = MARGIN_L: .Top = 12: .width = BODY_W: .Height = 22
-        .Font.Size = 14
+        .Left = MARGIN_L: .top = 12: .width = BODY_W: .Height = 22
+        .Font.size = 14
         .Font.bold = True
     End With
 
     Set lblVersion = Me.Controls.Add("Forms.Label.1", "lblVersion", True)
     With lblVersion
-        .Left = MARGIN_L: .Top = 36: .width = BODY_W: .Height = 14
+        .Left = MARGIN_L: .top = 36: .width = BODY_W: .Height = 14
     End With
 
     ' A 1-point-tall label with a fill is the cheapest horizontal rule MSForms
@@ -70,20 +70,20 @@ Private Sub BuildLayout()
     Set c = Me.Controls.Add("Forms.Label.1", "lblRule", True)
     With c
         .caption = ""
-        .Left = MARGIN_L: .Top = 58: .width = BODY_W: .Height = 1
+        .Left = MARGIN_L: .top = 58: .width = BODY_W: .Height = 1
         .BackColor = &H80000010                ' system button-shadow grey
     End With
 
     Set lblLicHdr = Me.Controls.Add("Forms.Label.1", "lblLicHdr", True)
     With lblLicHdr
         .caption = "License"
-        .Left = MARGIN_L: .Top = 68: .width = BODY_W: .Height = 14
+        .Left = MARGIN_L: .top = 68: .width = BODY_W: .Height = 14
         .Font.bold = True
     End With
 
     Set txtLicense = Me.Controls.Add("Forms.TextBox.1", "txtLicense", True)
     With txtLicense
-        .Left = MARGIN_L: .Top = 86: .width = BODY_W: .Height = 224
+        .Left = MARGIN_L: .top = 86: .width = BODY_W: .Height = 224
         .Multiline = True
         .WordWrap = True
         .ScrollBars = fmScrollBarsVertical
@@ -97,7 +97,7 @@ Private Sub BuildLayout()
     Set cmdClose = Me.Controls.Add("Forms.CommandButton.1", "cmdClose", True)
     With cmdClose
         .caption = "Close"
-        .Left = MARGIN_L + BODY_W - BTN_W: .Top = 322: .width = BTN_W: .Height = BTN_H
+        .Left = MARGIN_L + BODY_W - BTN_W: .top = 322: .width = BTN_W: .Height = BTN_H
         .Default = True                        ' Enter closes
         .Cancel = True                         ' Esc closes
     End With

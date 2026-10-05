@@ -1,6 +1,7 @@
 Attribute VB_Name = "modMonteCarlo"
 ' =============================================================================
 ' modMonteCarlo - Monte Carlo LAMBDA library. All logic, no user interface.
+' Copyright (c) 2026 W Phillips, edgewisedata.com. MIT License.
 '
 ' Layering, the same three tiers the LAMBDA Studio feature uses:
 '
@@ -63,12 +64,14 @@ Public Const MC_CHART_MARKS As Long = 3          ' P10, P50, P90
 Public Const MC_CHART_HEAD_ROWS As Long = 6      ' 1 title + 1 header + 3 P-lines + 1 header
 Public Const MC_CHART_HIST_COLS As Long = 8
 Public Const MC_CHART_TITLE_ROWS As Long = 1     ' title row atop fx.RiskTornado
+Public Const MC_FAN_HEAD_ROWS As Long = 2        ' fx.RiskChartFan: title + header, then one row per period
+Public Const MC_FAN_COLS As Long = 7             ' Period, Lower, P50, Upper, band width, Plan, Mean
 
 ' The library version this VBA is written against. The chart code's fixed
 ' block sizes, the catalog's argument lists and the function names all depend
 ' on it, so the bundle must match EXACTLY: McLoadBundleFromFile refuses any
 ' other MonteCarlo.txt, and the install layer refuses a stale bundle.
-Public Const MC_LIBRARY_VERSION As String = "0.6.0"
+Public Const MC_LIBRARY_VERSION As String = "0.7.0"
 
 ' Hidden name stamped into each workbook: the library version it holds.
 Public Const MC_VERSION_NAME As String = "MC_LibraryVersion"
@@ -90,6 +93,7 @@ Private Const BUNDLE_VERSION_CELL As String = "F1"
 
 Private mCatalog As Collection
 Private mCopulas As Collection
+Private mTimeSeries As Collection
 Private mBundle As Object               ' name -> Array(name, formula, description)
 Private mBundleOrder As Collection      ' names, in library order
 
@@ -167,6 +171,10 @@ Public Function McCatalog() As Collection
     c.Add Array("Student t", "fx.RiskStudent", "Degrees of freedom", "McD_Student")
     c.Add Array("Truncated normal", "fx.RiskTruncNormal", "Mean|Standard deviation|?Lower bound|?Upper bound", "McD_TruncNormal")
 
+    ' v0.7 continuous - Metalog takes ranges: the Type:=0 prompt accepts a selection
+    c.Add Array("Metalog", "fx.RiskMetalog", "Data, or quantile values (select a range)|?Cumulative probabilities of those quantiles (none = the range is raw data)|?Terms, 2 to 16 (none = 5 for data, one per quantile)|?Lower bound|?Upper bound", "McD_Metalog")
+    c.Add Array("SPT metalog", "fx.RiskSPTMetalog", "Low quantile (P10)|Median (P50)|High quantile (P90)|?Lower bound|?Upper bound|?Probability of the low quantile (none = 0.1, i.e. P10 / P50 / P90)", "McD_SPTMetalog")
+
     ' v0.3 discrete
     c.Add Array("Benford", "fx.RiskBenford", "?Digits (1 = first digit, 2 = first two)", "McD_Benford")
     c.Add Array("Geometric", "fx.RiskGeomet", "P (counts failures before the first success)", "McD_Geometric")
@@ -230,6 +238,212 @@ Public Function McCopulaByItemId(ByVal itemId As String) As Variant
             Exit Function
         End If
     Next entry
+End Function
+
+' --- the time-series catalog -------------------------------------------------
+
+' Array(display name, function base name, params, ribbon id, kind). kind is
+' "sim" for a simulator - Trials rows by Periods columns, written with the same
+' Trials / VarID tail as a distribution - or, for a Fit function, how many rows
+' its estimates block has: a number, or "ARMA" / "GARCH" when it depends on the
+' arguments (McTSFitRows). A parameter starting "#" is the number of columns the
+' result spills (Periods), so the target area can be checked before writing.
+Public Function McTSCatalog() As Collection
+    If Not mTimeSeries Is Nothing Then
+        Set McTSCatalog = mTimeSeries
+        Exit Function
+    End If
+
+    Dim c As New Collection
+    Const DT_PARAM As String = "?dt - length of one period in the units of the rates (1/12 = monthly with annual rates; none = 1)"
+    Const DF_PARAM As String = "?Degrees of freedom for fat-tailed Student t shocks, above 2 (none = normal shocks)"
+    c.Add Array("Geometric Brownian motion", "fx.RiskGBM", _
+                "Starting price|Drift - expected growth per unit of time (e.g. 0.08 a year)|" & _
+                "Volatility per unit of time (e.g. 0.25)|#Number of periods (columns)|" & DT_PARAM, "McT_GBM", "sim")
+    c.Add Array("Jump-diffusion (Merton)", "fx.RiskJumpDiffusion", _
+                "Starting price|Drift - expected growth per unit of time|Volatility per unit of time|" & _
+                "Jump rate - expected jumps per unit of time|Mean log jump size (negative = crashes)|" & _
+                "Standard deviation of the log jump size|#Number of periods (columns)|" & DT_PARAM, "McT_Jump", "sim")
+    c.Add Array("Mean reversion (Ornstein-Uhlenbeck)", "fx.RiskOU", _
+                "Starting value|Long-run mean|Speed of reversion per unit of time (half-life = LN(2) / speed)|" & _
+                "Volatility per unit of time|#Number of periods (columns)|" & DT_PARAM & "|" & DF_PARAM, "McT_OU", "sim")
+    c.Add Array("Square-root mean reversion (CIR)", "fx.RiskCIR", _
+                "Starting value, 0 or more|Long-run mean, above 0|Speed of reversion per unit of time|" & _
+                "Volatility (of the square root)|#Number of periods (columns)|" & DT_PARAM, "McT_CIR", "sim")
+    c.Add Array("ARMA", "fx.RiskARMA", _
+                "AR coefficients phi1, phi2 ... (select a range, or 0 for none)|" & _
+                "MA coefficients theta1, theta2 ... (select a range, or 0 for none)|Mean|" & _
+                "Standard deviation of the shocks|#Number of periods (columns)|" & _
+                "?Values before period 1, oldest first (select a range; none = start at the mean)|" & DF_PARAM, "McT_ARMA", "sim")
+    c.Add Array("ARIMA (p, 1, q)", "fx.RiskARIMA", _
+                "AR coefficients of the period-to-period changes (or 0)|MA coefficients of the changes (or 0)|" & _
+                "Drift - average change per period|Standard deviation of the shocks|#Number of periods (columns)|" & _
+                "?Level before period 1 - the last observation (none = 0)|" & DF_PARAM, "McT_ARIMA", "sim")
+    c.Add Array("GARCH / GJR returns", "fx.RiskGARCH", _
+                "Mean return per period|Omega, above 0|Alpha - reaction to the last shock|" & _
+                "Beta - persistence of the last variance (0 for ARCH)|#Number of periods (columns)|" & _
+                "?Gamma - extra reaction to bad news, for GJR (none = 0)|" & _
+                "?Variance of period 1 (none = the long-run variance)|" & DF_PARAM, "McT_GARCH", "sim")
+
+    Const HIST As String = " (select the column, oldest first)"
+    c.Add Array("Fit geometric Brownian motion", "fx.RiskFitGBM", _
+                "Price history" & HIST & "|?dt - time between observations (none = 1)", "McT_FitGBM", "3")
+    c.Add Array("Fit jump-diffusion", "fx.RiskFitJumpDiffusion", _
+                "Price history" & HIST & "|?dt - time between observations (none = 1)", "McT_FitJump", "6")
+    c.Add Array("Fit mean reversion (Ornstein-Uhlenbeck)", "fx.RiskFitOU", _
+                "History" & HIST & "|?dt - time between observations (none = 1)", "McT_FitOU", "5")
+    c.Add Array("Fit square-root mean reversion (CIR)", "fx.RiskFitCIR", _
+                "History, all above 0" & HIST & "|?dt - time between observations (none = 1)", "McT_FitCIR", "4")
+    c.Add Array("Fit ARMA", "fx.RiskFitARMA", _
+                "History" & HIST & "|AR lags p, 0 to 5|?MA lags q, 0 to 2 (none = 0)", "McT_FitARMA", "ARMA")
+    c.Add Array("Fit GARCH / GJR", "fx.RiskFitGARCH", _
+                "Return history, at least 100" & HIST & "|?TRUE for GJR - a separate reaction to bad news (none = symmetric GARCH)", _
+                "McT_FitGARCH", "GARCH")
+
+    ' Seasonal ARIMA. The Model block from Fit SARIMA is what the forecast, the
+    ' simulator and nothing else needs; Backtest and Rank refit by themselves.
+    Const SAR_HIST As String = "History (select the column, oldest first)"
+    Const SAR_MODEL As String = "Model block from Fit SARIMA (select its 19 x 2 block)"
+    Const SAR_ORDER As String = "?Order p,d,q,P,D,Q - a 6-cell range or {0,1,1,0,1,1} (none = the airline model)"
+    c.Add Array("Fit SARIMA", "fx.RiskSARIMAFit", _
+                SAR_HIST & "|" & SAR_ORDER & "|?Season length (none = 12)|?TRUE to model the logarithm (none = no)", _
+                "McT_SARFit", "19")
+    c.Add Array("SARIMA forecast table", "fx.RiskSARIMAForecast", _
+                SAR_HIST & "|" & SAR_MODEL & "|Periods ahead|?Lower percentile of the band (none = 0.1)|" & _
+                "?Upper percentile of the band (none = 0.9)|?Labels for the future periods (select them; none = 1, 2, 3 ...)", _
+                "McT_SARForecast", "SFC")
+    c.Add Array("SARIMA simulated paths", "fx.RiskSARIMA", _
+                SAR_HIST & "|" & SAR_MODEL & "|#Number of periods ahead (columns)|" & DF_PARAM, "McT_SARSim", "sim")
+    c.Add Array("SARIMA backtest", "fx.RiskSARIMABacktest", _
+                SAR_HIST & "|Periods to hold out, e.g. 12|" & SAR_ORDER & "|?Season length (none = 12)|" & _
+                "?TRUE to model the logarithm (none = no)|?Lower percentile (none = 0.1)|?Upper percentile (none = 0.9)", _
+                "McT_SARBacktest", "SBT")
+    c.Add Array("Rank SARIMA orders", "fx.RiskSARIMARank", _
+                SAR_HIST & "|?d - non-seasonal differencing, 0 or 1 (none = 1)|?D - seasonal differencing, 0 or 1 (none = 1)|" & _
+                "?Season length (none = 12)|?TRUE to model the logarithm (none = no)", "McT_SARRank", "13")
+
+    Set mTimeSeries = c
+    Set McTSCatalog = c
+End Function
+
+' Returns the time-series entry for a ribbon button id, or Empty when unknown.
+Public Function McTSByItemId(ByVal itemId As String) As Variant
+    Dim entry As Variant
+    For Each entry In McTSCatalog()
+        If StrComp(CStr(entry(3)), itemId, vbTextCompare) = 0 Then
+            McTSByItemId = entry
+            Exit Function
+        End If
+    Next entry
+End Function
+
+' How many columns a simulator will spill: the value given for its "#"
+' parameter (Periods). 0 when it cannot tell, e.g. a formula that errors.
+Public Function McTSColumns(ByVal params As Variant, ByVal args As Variant) As Long
+    Dim i As Long, v As Variant
+    On Error GoTo Unknown
+    For i = LBound(params) To UBound(params)
+        If McParamIsColumns(CStr(params(i))) Then
+            v = Application.Evaluate(CStr(args(i)))
+            If IsNumeric(v) Then McTSColumns = CLng(v)
+            Exit Function
+        End If
+    Next i
+    Exit Function
+Unknown:
+    McTSColumns = 0
+End Function
+
+'' How many rows a Fit function's estimates block has, from its arguments:
+' ARMA is 3 + p + q, GARCH 7 (8 with Gamma), a SARIMA forecast Horizon + 1 and a
+' SARIMA backtest Holdout + 6. 0 when it cannot tell.
+Public Function McTSFitRows(ByVal entry As Variant, ByVal args As Variant) As Long
+    Dim p As Variant, q As Variant, asym As Variant
+    On Error GoTo Unknown
+    Select Case CStr(entry(4))
+        Case "ARMA"
+            p = Application.Evaluate(CStr(args(1)))
+            q = 0
+            If UBound(args) >= 2 Then If Len(CStr(args(2))) > 0 Then q = Application.Evaluate(CStr(args(2)))
+            If IsNumeric(p) And IsNumeric(q) Then McTSFitRows = 3 + CLng(p) + CLng(q)
+        Case "GARCH"
+            McTSFitRows = 7
+            If UBound(args) >= 1 Then
+                If Len(CStr(args(1))) > 0 Then
+                    asym = Application.Evaluate(CStr(args(1)))
+                    If VarType(asym) = vbBoolean Then If asym Then McTSFitRows = 8
+                End If
+            End If
+        Case "SFC"
+            p = Application.Evaluate(CStr(args(2)))
+            If IsNumeric(p) Then McTSFitRows = CLng(p) + 1
+        Case "SBT"
+            p = Application.Evaluate(CStr(args(1)))
+            If IsNumeric(p) Then McTSFitRows = CLng(p) + 6
+        Case Else
+            McTSFitRows = CLng(entry(4))
+    End Select
+    Exit Function
+Unknown:
+    McTSFitRows = 0
+End Function
+
+' =fx.RiskFitARMA<lambda>(A2:A500, 1, 1) - a Fit call has no Trials / VarID
+' tail, and trailing optional arguments the user left out are dropped.
+Public Function McBuildFitCall(ByVal baseName As String, ByVal args As Variant) As String
+    Dim i As Long, lastUsed As Long, s As String
+    lastUsed = LBound(args) - 1
+    For i = LBound(args) To UBound(args)
+        If Len(CStr(args(i))) > 0 Then lastUsed = i
+    Next i
+    s = "=" & McFunctionName(baseName) & "("
+    For i = LBound(args) To lastUsed
+        If i > LBound(args) Then s = s & ", "
+        s = s & CStr(args(i))
+    Next i
+    McBuildFitCall = s & ")"
+End Function
+
+' --- the diagnostics -------------------------------------------------------
+
+' The six Diagnostics buttons, by ribbon id: the LAMBDA each writes.
+Public Function McDiagFunction(ByVal itemId As String) As String
+    Select Case itemId
+        Case "McX_Correl": McDiagFunction = "fx.RiskCorrelMatrix"
+        Case "McX_Cov": McDiagFunction = "fx.RiskCovMatrix"
+        Case "McX_Normal": McDiagFunction = "fx.RiskNormality"
+        Case "McX_Collin": McDiagFunction = "fx.RiskCollinearity"
+        Case "McX_Eigen": McDiagFunction = "fx.RiskEigen"
+        Case "McX_Outliers": McDiagFunction = "fx.RiskOutliers"
+    End Select
+End Function
+
+' The block a diagnostic spills, as Array(rows, columns), for n rows of data in k
+' columns. measure matters only for Collinearity ("All" is 4 columns wide).
+Public Function McDiagSize(ByVal itemId As String, ByVal n As Long, ByVal k As Long, _
+                           Optional ByVal measure As String = "") As Variant
+    Select Case itemId
+        Case "McX_Correl", "McX_Cov": McDiagSize = Array(k + 2, k + 1)
+        Case "McX_Normal": McDiagSize = Array(14, k + 1)
+        Case "McX_Collin": McDiagSize = Array(k + 2, IIf(UCase$(measure) = "ALL", 4, 2))
+        Case "McX_Eigen": McDiagSize = Array(k + 2, 5)
+        Case "McX_Outliers": McDiagSize = Array(n + 2, 5)
+    End Select
+End Function
+
+' =fx.RiskCorrelMatrix<lambda>(data, opt1, opt2, opt3, names) with the options each
+' function takes in its own order, trailing omitted arguments dropped. Text options
+' arrive already quoted.
+Public Function McBuildDiag(ByVal itemId As String, ByVal dataRef As String, ByVal namesRef As String, _
+                            ByVal opt1 As String, ByVal opt2 As String, ByVal opt3 As String) As String
+    Select Case itemId
+        Case "McX_Correl", "McX_Normal"
+            McBuildDiag = McBuildFitCall(McDiagFunction(itemId), Array(dataRef, opt1, opt2, opt3, namesRef))
+        Case "McX_Cov", "McX_Collin"
+            McBuildDiag = McBuildFitCall(McDiagFunction(itemId), Array(dataRef, opt1, namesRef))
+        Case Else
+            McBuildDiag = McBuildFitCall(McDiagFunction(itemId), Array(dataRef))
+    End Select
 End Function
 
 ' How many columns a copula call will spill, from the arguments the user gave:
@@ -487,7 +701,7 @@ End Function
 Public Function McEnsureFunctions(ByVal wb As Workbook, ByVal names As Variant, _
                                   ByRef added As Long, ByRef fromVersion As String, _
                                   Optional ByRef why As String) As Boolean
-    Dim installed As Collection, todo As New Collection, Failed As New Collection
+    Dim installed As Collection, todo As New Collection, failed As New Collection
     Dim both As New Collection, e As Variant, nm As Variant, cur As String
 
     added = 0
@@ -514,12 +728,12 @@ Public Function McEnsureFunctions(ByVal wb As Workbook, ByVal names As Variant, 
         Next e
     End If
 
-    If todo.count > 0 Then added = modLambdaLib.AddEntriesToWorkbook(todo, wb, Failed)
+    If todo.count > 0 Then added = modLambdaLib.AddEntriesToWorkbook(todo, wb, failed)
 
     For Each e In McDependencyClosure(names)
         If Not HasName(wb, CStr(e(0))) Then
             why = CStr(e(0)) & " could not be added to the workbook."
-            If Failed.count > 0 Then why = why & vbCrLf & vbCrLf & "Excel said: " & CStr(Failed(1))
+            If failed.count > 0 Then why = why & vbCrLf & vbCrLf & "Excel said: " & CStr(failed(1))
             Exit Function
         End If
     Next e
@@ -534,7 +748,7 @@ End Function
 
 ' Every library function, into wb. Returns how many were written.
 Public Function McInstallAll(ByVal wb As Workbook, _
-                             Optional ByRef Failed As Collection, _
+                             Optional ByRef failed As Collection, _
                              Optional ByRef wrapped As Collection) As Long
     Dim all As New Collection, nm As Variant, why As String
     If wb Is Nothing Then Exit Function
@@ -543,10 +757,10 @@ Public Function McInstallAll(ByVal wb As Workbook, _
     For Each nm In mBundleOrder
         all.Add mBundle(nm)
     Next nm
-    If Failed Is Nothing Then Set Failed = New Collection
+    If failed Is Nothing Then Set failed = New Collection
     If wrapped Is Nothing Then Set wrapped = New Collection
-    McInstallAll = modLambdaLib.AddEntriesToWorkbook(all, wb, Failed, wrapped)
-    If Failed.count = 0 Then StampVersion wb
+    McInstallAll = modLambdaLib.AddEntriesToWorkbook(all, wb, failed, wrapped)
+    If failed.count = 0 Then StampVersion wb
 End Function
 
 ' The library functions a workbook's formulas actually call - on any sheet, or
@@ -637,7 +851,7 @@ Public Function McLoadBundleFromFile(ByVal path As String, ByRef count As Long, 
 
     On Error Resume Next
     Set ws = ThisWorkbook.Worksheets(BUNDLE_SHEET)
-    On Error GoTo Failed
+    On Error GoTo failed
     If ws Is Nothing Then
         ' An .xlam will not take a new sheet while it is an add-in.
         wasAddin = ThisWorkbook.IsAddin
@@ -672,7 +886,7 @@ Public Function McLoadBundleFromFile(ByVal path As String, ByRef count As Long, 
     McLoadBundleFromFile = True
     Exit Function
 
-Failed:
+failed:
     If wasAddin Then ThisWorkbook.IsAddin = True
     why = "Error " & Err.Number & " writing the bundle: " & Err.description
 End Function
@@ -795,7 +1009,7 @@ End Function
 Public Function McParamLabel(ByVal param As String) As String
     If McParamIsTrailing(param) Then
         McParamLabel = Mid$(param, 3)
-    ElseIf McParamIsOptional(param) Then
+    ElseIf McParamIsOptional(param) Or McParamIsColumns(param) Then
         McParamLabel = Mid$(param, 2)
     Else
         McParamLabel = param
@@ -805,6 +1019,12 @@ End Function
 ' "?^..." - an optional parameter that comes AFTER Trials, VarID and Seed.
 Public Function McParamIsTrailing(ByVal param As String) As Boolean
     McParamIsTrailing = (Left$(param, 2) = "?^")
+End Function
+
+' A time-series parameter beginning "#" is the number of columns the result
+' spills (Periods): McTSColumns reads it to size the target area.
+Public Function McParamIsColumns(ByVal param As String) As Boolean
+    McParamIsColumns = (Left$(param, 1) = "#")
 End Function
 
 ' True when the user typed "none" for an optional parameter. InputBox Type:=0

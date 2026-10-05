@@ -1,6 +1,7 @@
 Attribute VB_Name = "modMonteCarloRibbon"
 ' =============================================================================
 ' modMonteCarloRibbon - the Monte Carlo buttons on the Tools menu.
+' Copyright (c) 2026 W Phillips, edgewisedata.com. MIT License.
 '
 ' UI ONLY. Every MsgBox and InputBox in this feature is here; every decision it
 ' makes is in modMonteCarlo, which can be exercised without a dialog appearing.
@@ -18,6 +19,9 @@ Attribute VB_Name = "modMonteCarloRibbon"
 '   McGalDisc   -> McPickDistribution   (Discrete gallery)
 '   McC_*       -> McPickCopula         (Insert Monte Carlo Copula menu, including
 '                                        McC_ClaytonNeg and McC_FrankNeg)
+'   McT_*       -> McPickTimeSeries     (Insert Time Series menu:
+'                                        simulators and Fit functions)
+'   McX_*       -> McPickDiagnostic     (Insert Statistical Diagnostics menu)
 '   McStatsBtn          -> McInsertStats                (Insert Monte Carlo Statistics menu)
 '   McStatsDetailBtn    -> McInsertStatsDetail
 '   McVarTableBtn       -> McInsertVariablesTable
@@ -27,6 +31,7 @@ Attribute VB_Name = "modMonteCarloRibbon"
 '   McChartSCurveBtn  -> McChartSCurve      (Insert Monte Carlo Chart menu)
 '   McChartHistBtn    -> McChartHistogram
 '   McChartTornadoBtn -> McChartTornado
+'   McChartFanBtn     -> McChartFan
 '   McLibBtn    -> McInstallLibrary
 ' =============================================================================
 Option Explicit
@@ -61,6 +66,208 @@ Public Sub McPickCopula(control As IRibbonControl)
     End If
     InsertDistribution entry, True
 End Sub
+
+' Every time-series button shares this callback. Simulators go through the
+' distribution worker (they take the same Trials / VarID tail); Fit functions
+' write a labeled block of estimates from a history the user selects.
+Public Sub McPickTimeSeries(control As IRibbonControl)
+    Dim entry As Variant
+    entry = modMonteCarlo.McTSByItemId(control.id)
+    If IsEmpty(entry) Then
+        Warn "The ribbon item " & control.id & " is not in the time-series catalog." & vbCrLf & vbCrLf & _
+             "The button ids in the ribbon XML and in modMonteCarlo.McTSCatalog have drifted apart."
+        Exit Sub
+    End If
+    If CStr(entry(4)) = "sim" Then
+        InsertDistribution entry, False, True
+    Else
+        InsertTSFit entry
+    End If
+End Sub
+
+' The six Diagnostics buttons. Data is either one table of history (one variable
+' per column; names from the row above) or the spilled results of several
+' variables, Ctrl-clicked - the same choice the Variables Table offers.
+Public Sub McPickDiagnostic(control As IRibbonControl)
+    Dim wb As Workbook
+    Dim picked As Range, area As Range, anchor As Range, target As Range
+    Dim refs As New Collection, labels As New Collection, seen As New Collection
+    Dim dataRef As String, namesRef As String, formulaText As String, key As String, startAt As String
+    Dim opt1 As String, opt2 As String, opt3 As String, answer As String, title As String
+    Dim n As Long, k As Long, added As Long
+    Dim plain As Boolean
+    Dim size As Variant
+
+    Dim fromVer As String, why As String
+    On Error GoTo Oops
+    If Not HaveWorkbook(wb) Then Exit Sub
+    title = Mid$(control.id, 5)
+
+    If TypeName(Selection) = "Range" Then startAt = Selection.Address(External:=False)
+    On Error Resume Next
+    Set picked = Application.InputBox( _
+        prompt:="Select the DATA - one variable per column:" & vbCrLf & vbCrLf & _
+                "  - a table of history (its header row, if any, names the variables), or" & vbCrLf & _
+                "  - any cell of each variable's spilled trials; hold Ctrl to pick several.", _
+        title:=DIALOG_TITLE, Default:=startAt, Type:=8)
+    On Error GoTo Oops
+    If picked Is Nothing Then Exit Sub
+
+    ' One plain block (not part of a spilled result) is a table of history.
+    Set anchor = modMonteCarlo.McSpillAnchor(picked.Areas(1))
+    plain = (picked.Areas.count = 1 And picked.Cells.count > 1 And Not anchor.HasSpill)
+    If plain Then
+        n = picked.rows.count
+        k = picked.Columns.count
+    Else
+        For Each area In picked.Areas
+            Set anchor = modMonteCarlo.McSpillAnchor(area)
+            key = anchor.Worksheet.name & "!" & anchor.Address
+            If Not InCollection(seen, key) Then
+                seen.Add key, key
+                If anchor.HasSpill Then
+                    k = k + anchor.SpillingToRange.Columns.count
+                    If n = 0 Then n = anchor.SpillingToRange.rows.count
+                Else
+                    k = k + 1
+                End If
+            End If
+        Next area
+    End If
+    If n < 3 Then
+        Warn "Select at least three rows of data."
+        Exit Sub
+    End If
+    If k < 2 And control.id <> "McX_Normal" Then
+        Warn "This diagnostic compares variables: select at least two columns."
+        Exit Sub
+    End If
+
+    Select Case control.id
+        Case "McX_Correl"
+            answer = AskText("Pearson or Spearman (rank) correlation?", "Pearson")
+            If Len(answer) = 0 Then Exit Sub
+            If UCase$(answer) = "SPEARMAN" Then opt2 = """Spearman"""
+            answer = AskText("What should the LOWER triangle show? (the upper always shows R)" & vbCrLf & vbCrLf & _
+                             "none = R again (a symmetric matrix)" & vbCrLf & _
+                             "0 = only the strong pairs, |R| > 0.90" & vbCrLf & _
+                             "1 = R squared" & vbCrLf & _
+                             "2 = p-value (is the correlation real?)" & vbCrLf & _
+                             "3 = Yes / No - significant at alpha?", "none")
+            If Len(answer) = 0 Then Exit Sub
+            If answer <> "none" Then
+                If Not (answer = "0" Or answer = "1" Or answer = "2" Or answer = "3") Then
+                    Warn "Type none, 0, 1, 2 or 3."
+                    Exit Sub
+                End If
+                opt1 = answer
+                If answer = "3" Then
+                    answer = AskText("Significance level alpha?", "0.05")
+                    If Len(answer) = 0 Then Exit Sub
+                    If answer <> "0.05" Then opt3 = answer
+                End If
+            End If
+        Case "McX_Cov"
+            Select Case MsgBox("Sample covariance (divides by n - 1)?" & vbCrLf & vbCrLf & _
+                               "Yes: sample (the usual choice).   No: population (divides by n).", _
+                               vbYesNoCancel + vbQuestion, DIALOG_TITLE)
+                Case vbCancel: Exit Sub
+                Case vbNo: opt1 = "FALSE"
+            End Select
+        Case "McX_Normal"
+            answer = AskText("Which tests? SW = Shapiro-Wilk, AD = Anderson-Darling, JB = Jarque-Bera.", "SW,AD,JB")
+            If Len(answer) = 0 Then Exit Sub
+            If UCase$(Replace(answer, " ", "")) <> "SW,AD,JB" Then opt1 = """" & answer & """"
+            If InStr(1, answer, "AD", vbTextCompare) > 0 Then
+                answer = AskText("Anderson-Darling variant?" & vbCrLf & vbCrLf & _
+                                 "Normal = mean and sd estimated (usual)" & vbCrLf & _
+                                 "Unmodified = the same test, reporting the plain A2" & vbCrLf & _
+                                 "LogNormal = test the logarithms (positive, right-skewed data)" & vbCrLf & _
+                                 "Generic = the data are already standardized (e.g. residuals)", "Normal")
+                If Len(answer) = 0 Then Exit Sub
+                If UCase$(answer) <> "NORMAL" Then opt2 = """" & answer & """"
+            End If
+            answer = AskText("Significance level alpha?", "0.05")
+            If Len(answer) = 0 Then Exit Sub
+            If answer <> "0.05" Then opt3 = answer
+        Case "McX_Collin"
+            answer = AskText("Which measure? VIF, Tolerance (1 / VIF), R2, or All three.", "VIF")
+            If Len(answer) = 0 Then Exit Sub
+            If UCase$(answer) <> "VIF" Then opt1 = """" & answer & """"
+        Case "McX_Outliers"
+            If n > 5000 Then
+                If MsgBox("That is " & Format$(n, "#,##0") & " rows - the result has one row per observation. " & _
+                          "Continue?", vbOKCancel + vbQuestion, DIALOG_TITLE) = vbCancel Then Exit Sub
+            End If
+    End Select
+
+    size = modMonteCarlo.McDiagSize(control.id, n, k, Replace(opt1, """", ""))
+    Set target = AskTarget("Where should the " & LCase$(title) & " block go?" & vbCrLf & vbCrLf & _
+                           BlockSize(CLng(size(0)), CLng(size(1))))
+    If target Is Nothing Then Exit Sub
+    If Not TargetIsClear(target, CLng(size(0)), CLng(size(1))) Then Exit Sub
+
+    ' References are built only now: whether they need a sheet name depends on the target.
+    If plain Then
+        dataRef = picked.Address(External:=(picked.Worksheet.name <> target.Worksheet.name))
+        If picked.Row > 1 Then
+            If Application.WorksheetFunction.CountA(picked.rows(1).offset(-1, 0)) = k Then
+                namesRef = picked.rows(1).offset(-1, 0).Address(External:=(picked.Worksheet.name <> target.Worksheet.name))
+            End If
+        End If
+    Else
+        Set seen = New Collection
+        For Each area In picked.Areas
+            Set anchor = modMonteCarlo.McSpillAnchor(area)
+            key = anchor.Worksheet.name & "!" & anchor.Address
+            If Not InCollection(seen, key) Then
+                seen.Add key, key
+                refs.Add modMonteCarlo.McSpillReference(anchor, target)
+                labels.Add modMonteCarlo.McLabelFragment(anchor, target)
+            End If
+        Next area
+        If refs.count = 1 Then
+            dataRef = refs(1)
+        Else
+            dataRef = "HSTACK(" & JoinRefs(refs) & ")"
+            If refs.count = k Then namesRef = "HSTACK(" & JoinRefs(labels) & ")"
+        End If
+    End If
+
+    AppStateManager.FastModeOn
+    If Not modMonteCarlo.McEnsureFunctions(wb, Array(modMonteCarlo.McDiagFunction(control.id)), added, fromVer, why) Then
+        AppStateManager.FastModeOff
+        Warn "The Monte Carlo functions could not be added to this workbook." & vbCrLf & vbCrLf & why
+        Exit Sub
+    End If
+    formulaText = modMonteCarlo.McBuildDiag(control.id, dataRef, namesRef, opt1, opt2, opt3)
+    modMonteCarlo.McWriteFormula target, formulaText
+    target.Worksheet.Calculate
+    AppStateManager.FastModeOff
+
+    If IsError(target.Value2) Then
+        Warn "The result came back as " & target.text & "." & vbCrLf & vbCrLf & _
+             "Usual causes: text or blanks in the data, columns of different lengths, a column " & _
+             "that never changes, or (for multicollinearity) a variable that is an exact mix of " & _
+             "the others. The formula has been left in " & target.Address(False, False) & "."
+        Exit Sub
+    End If
+    MsgBox title & " written to " & target.Address(False, False) & "." & vbCrLf & vbCrLf & _
+           formulaText & vbCrLf & vbCrLf & InstallNote(added, fromVer), vbInformation, DIALOG_TITLE
+    Exit Sub
+
+Oops:
+    AppStateManager.FastModeOff
+    ShowError
+End Sub
+
+Private Function JoinRefs(ByVal c As Collection) As String
+    Dim v As Variant
+    For Each v In c
+        If Len(JoinRefs) > 0 Then JoinRefs = JoinRefs & ", "
+        JoinRefs = JoinRefs & CStr(v)
+    Next v
+End Function
 
 Public Sub McInsertStats(control As IRibbonControl)
     InsertFromSelection "fx.RiskStats", modMonteCarlo.MC_STATS_ROWS, _
@@ -98,6 +305,142 @@ End Sub
 Public Sub McChartSCurve(control As IRibbonControl)
     InsertDistributionChart True
 End Sub
+
+' Fan chart for a block of paths from a time-series simulator. Asks for the
+' band (default P10 to P90) and an optional starting value for period 0, writes
+' the fx.RiskChartFan block, and draws the chart beside it.
+Public Sub McChartFan(control As IRibbonControl)
+    Dim wb As Workbook, ws As Worksheet
+    Dim source As Range, anchor As Range, target As Range
+    Dim ref As String, outName As String, formulaText As String
+    Dim loText As String, hiText As String, startText As String, planText As String, labelText As String
+    Dim nPeriods As Long, nRows As Long, added As Long
+    Dim lo As Double, hi As Double
+
+    Dim fromVer As String, why As String
+    On Error GoTo Oops
+    If Not HaveWorkbook(wb) Then Exit Sub
+    If Not modXLEdgeHelpers.GetSelectionRange(source, True, DIALOG_TITLE) Then Exit Sub
+    If source Is Nothing Then
+        Warn "Select the simulated paths first - any cell of the spilled block will do."
+        Exit Sub
+    End If
+    Set anchor = modMonteCarlo.McSpillAnchor(source)
+    If anchor.HasSpill Then
+        nPeriods = anchor.SpillingToRange.Columns.count
+    Else
+        nPeriods = source.Columns.count
+    End If
+    If nPeriods < 2 Then
+        Warn "A fan chart needs paths over several periods - a block with one row per trial " & _
+             "and one column per period, such as a time-series simulator spills."
+        Exit Sub
+    End If
+    outName = modMonteCarlo.McResultName(anchor)
+
+    loText = AskText("The band's LOWER percentile, between 0 and 1?" & vbCrLf & vbCrLf & _
+                     "0.1 draws the band from P10.", "0.1")
+    If Len(loText) = 0 Then Exit Sub
+    hiText = AskText("The band's UPPER percentile, between 0 and 1?" & vbCrLf & vbCrLf & _
+                     "0.9 draws the band up to P90.", "0.9")
+    If Len(hiText) = 0 Then Exit Sub
+    If Not IsNumeric(loText) Or Not IsNumeric(hiText) Then
+        Warn "The percentiles must be numbers between 0 and 1, such as 0.1 and 0.9."
+        Exit Sub
+    End If
+    lo = CDbl(loText)
+    hi = CDbl(hiText)
+    If lo < 0 Or hi > 1 Or lo >= hi Then
+        Warn "The lower percentile must be below the upper one, both between 0 and 1."
+        Exit Sub
+    End If
+    startText = AskText("A starting value to show as period 0, so the fan opens from a point?" & _
+                        vbCrLf & vbCrLf & "Type a number or a cell address, or leave none.", "none")
+    If Len(startText) = 0 Then Exit Sub
+    If LCase$(startText) = "none" Then startText = ""
+    planText = AskRangeOrNone("Your single-number forecast - the plan - to draw against the band?" & _
+                              vbCrLf & vbCrLf & "Select its " & nPeriods & " values (a row or a column), " & _
+                              "or type none.")
+    If planText = vbNullChar Then Exit Sub
+    labelText = AskRangeOrNone("Labels for the periods, such as dates or month names?" & _
+                               vbCrLf & vbCrLf & "Select " & nPeriods & " cells, or type none to " & _
+                               "number them 1, 2, 3 ...")
+    If labelText = vbNullChar Then Exit Sub
+
+    nRows = modMonteCarlo.MC_FAN_HEAD_ROWS + nPeriods + IIf(Len(startText) > 0, 1, 0)
+    Set target = AskTarget("Where should the fan data go?" & vbCrLf & vbCrLf & _
+                           BlockSize(nRows, modMonteCarlo.MC_FAN_COLS) & _
+                           " The title, a header, then one row per period. The chart is placed to the right.")
+    If target Is Nothing Then Exit Sub
+    If Not TargetIsClear(target, nRows, modMonteCarlo.MC_FAN_COLS) Then Exit Sub
+    Set ws = target.Worksheet
+
+    ref = modMonteCarlo.McSpillReference(anchor, target)
+    If Len(ref) = 0 Then ref = source.Address(External:=(source.Worksheet.name <> ws.name))
+
+    AppStateManager.FastModeOn
+    If Not modMonteCarlo.McEnsureFunctions(wb, Array("fx.RiskChartFan"), added, fromVer, why) Then
+        AppStateManager.FastModeOff
+        Warn "The Monte Carlo functions could not be added to this workbook." & vbCrLf & vbCrLf & why
+        Exit Sub
+    End If
+    formulaText = "=" & modMonteCarlo.McFunctionName("fx.RiskChartFan") & "(" & ref & ", " & _
+                  NumText(lo) & ", " & NumText(hi) & ", " & _
+                  modMonteCarlo.McLabelFragment(anchor, target) & ", " & startText & ", " & _
+                  planText & ", " & labelText
+    ' Drop trailing empty arguments: "(..., $B$1, , , " -> "(..., $B$1".
+    Do While Right$(formulaText, 1) = "," Or Right$(formulaText, 1) = " "
+        formulaText = Left$(formulaText, Len(formulaText) - 1)
+    Loop
+    formulaText = formulaText & ")"
+    modMonteCarlo.McWriteFormula target, formulaText
+    ws.Calculate
+    If IsError(target.Value2) Then
+        AppStateManager.FastModeOff
+        Warn "The fan data came back as " & target.text & "." & vbCrLf & vbCrLf & _
+             "Check that the selection is a block of numbers with at least two trials. " & _
+             "The formula has been left in " & target.Address(False, False) & " so you can inspect it."
+        Exit Sub
+    End If
+    modMonteCarloCharts.McDrawFan ws, target, Len(planText) > 0, _
+                                  target.offset(0, modMonteCarlo.MC_FAN_COLS + 1).Left, target.top
+    AppStateManager.FastModeOff
+
+    MsgBox "Fan chart for " & outName & " written, with the chart beside the data." & vbCrLf & vbCrLf & _
+           formulaText & vbCrLf & vbCrLf & _
+           "To change the band, edit its two percentiles in the formula in " & _
+           target.Address(False, False) & " - the band, the headers and the legend follow. " & _
+           "Keep the data where it is: deleting it breaks the chart." & vbCrLf & vbCrLf & _
+           InstallNote(added, fromVer), _
+           vbInformation, DIALOG_TITLE
+    Exit Sub
+
+Oops:
+    AppStateManager.FastModeOff
+    ShowError
+End Sub
+
+' A range the user selects, as a sheet-qualified address, or "" for none.
+' Returns vbNullChar on Cancel. Type:=0 accepts a selection or typed text.
+Private Function AskRangeOrNone(ByVal prompt As String) As String
+    Dim v As Variant
+    On Error Resume Next
+    v = Application.InputBox(prompt:=prompt, title:=DIALOG_TITLE, Default:="none", Type:=0)
+    On Error GoTo 0
+    If VarType(v) = vbBoolean Then
+        AskRangeOrNone = vbNullChar
+    ElseIf modMonteCarlo.McIsNone(CStr(v)) Then
+        AskRangeOrNone = ""
+    Else
+        AskRangeOrNone = modMonteCarlo.McArgText(CStr(v))
+    End If
+End Function
+
+' A number as formula text: Str$ always writes a "." decimal point.
+Private Function NumText(ByVal v As Double) As String
+    NumText = Trim$(Str$(v))
+    If Left$(NumText, 1) = "." Then NumText = "0" & NumText
+End Function
 
 ' Select the output, then Ctrl-click the inputs. Every input's trials must line
 ' up with the output's, trial for trial - which they do when they come from
@@ -194,7 +537,7 @@ Public Sub McChartTornado(control As IRibbonControl)
         Exit Sub
     End If
     modMonteCarloCharts.McDrawTornado ws, target, target.offset(modMonteCarlo.MC_CHART_TITLE_ROWS, 0), _
-        nIn, IIf(useRank, "rank", "swing"), target.offset(0, nCols + 1).Left, target.Top
+        nIn, IIf(useRank, "rank", "swing"), target.offset(0, nCols + 1).Left, target.top
     AppStateManager.FastModeOff
 
     MsgBox "Tornado for " & outName & " written to " & target.Address(False, False) & _
@@ -286,7 +629,7 @@ End Sub
 Public Sub McInstallLibrary(control As IRibbonControl)
     Dim wb As Workbook
     Dim used As Collection
-    Dim Failed As New Collection, wrapped As New Collection
+    Dim failed As New Collection, wrapped As New Collection
     Dim added As Long
     Dim msg As String, fromVer As String, why As String
     Dim answer As VbMsgBoxResult
@@ -298,7 +641,7 @@ Public Sub McInstallLibrary(control As IRibbonControl)
         Exit Sub
     End If
 
-    answer = MsgBox("Which Monte Carlo functions should go into " & wb.name & "?" & vbCrLf & vbCrLf & _
+    answer = MsgBox("Which Monte Carlo and statistical functions should go into " & wb.name & "?" & vbCrLf & vbCrLf & _
                     "Yes:  only the ones this workbook's formulas use, with what they depend on. " & _
                     "Also repairs a workbook showing #NAME? for a Monte Carlo function." & vbCrLf & vbCrLf & _
                     "No:   the full library (" & modMonteCarlo.McBundleCount() & " functions), " & _
@@ -328,13 +671,13 @@ Public Sub McInstallLibrary(control As IRibbonControl)
               IIf(added = 0 And Len(fromVer) = 0, "All of them, and everything they depend on, " & _
                   "were already installed.", InstallNote(added, fromVer))
     Else
-        added = modMonteCarlo.McInstallAll(wb, Failed, wrapped)
+        added = modMonteCarlo.McInstallAll(wb, failed, wrapped)
         AppStateManager.FastModeOff
         msg = added & " Monte Carlo functions are now in " & wb.name & "." & vbCrLf & vbCrLf & _
               "They are ordinary defined names, so this workbook will keep calculating " & _
               "on a machine with no add-ins at all."
-        If Failed.count > 0 Then msg = msg & vbCrLf & vbCrLf & _
-              Failed.count & " could not be added." & NameList(Failed)
+        If failed.count > 0 Then msg = msg & vbCrLf & vbCrLf & _
+              failed.count & " could not be added." & NameList(failed)
         If wrapped.count > 0 Then msg = msg & vbCrLf & vbCrLf & _
               "Stored as zero-argument functions, so call them with brackets:" & NameList(wrapped)
     End If
@@ -444,10 +787,10 @@ Private Sub InsertDistributionChart(ByVal isSCurve As Boolean)
     End If
 
     If isSCurve Then
-        modMonteCarloCharts.McDrawHistogramSCurve ws, target, target.offset(0, nCols + 1).Left, target.Top
+        modMonteCarloCharts.McDrawHistogramSCurve ws, target, target.offset(0, nCols + 1).Left, target.top
     Else
         modMonteCarloCharts.McDrawOutcomeHistogram ws, target, modMonteCarlo.MC_CHART_MARKS, _
-            target.offset(0, nCols + 1).Left, target.Top
+            target.offset(0, nCols + 1).Left, target.top
     End If
     AppStateManager.FastModeOff
 
@@ -480,7 +823,9 @@ End Function
 ' entry is a catalog row: Array(display name, base name, params, item id).
 ' A copula differs only in its result - several columns of uniforms rather
 ' than one column of values - so only the size message and closing hint change.
-Private Sub InsertDistribution(ByVal entry As Variant, ByVal isCopula As Boolean)
+' A time-series simulator likewise: one row per trial, one column per period.
+Private Sub InsertDistribution(ByVal entry As Variant, ByVal isCopula As Boolean, _
+                               Optional ByVal isTimeSeries As Boolean = False)
     Dim wb As Workbook
     Dim i As Long, vid As Long, added As Long, trials As Long, nCols As Long, nTrailing As Long
     Dim params() As String
@@ -514,7 +859,16 @@ Private Sub InsertDistribution(ByVal entry As Variant, ByVal isCopula As Boolean
     End If
 
     trials = modMonteCarlo.McTrialsCount(wb)
-    If isCopula Then
+    If isTimeSeries Then
+        nCols = modMonteCarlo.McTSColumns(params, args)
+        If nCols > 0 Then
+            Set target = AskTarget("Where should the paths go?" & vbCrLf & vbCrLf & _
+                                   "One row per trial, one column per period. " & BlockSize(trials, nCols))
+        Else
+            Set target = AskTarget("Where should the paths go?" & vbCrLf & vbCrLf & _
+                                   "One row per trial (" & RowsText(trials) & "), one column per period.")
+        End If
+    ElseIf isCopula Then
         nCols = modMonteCarlo.McCopulaColumns(CStr(entry(1)), args)
         If nCols > 0 Then
             Set target = AskTarget("Where should the correlated uniforms go?" & vbCrLf & vbCrLf & _
@@ -551,7 +905,8 @@ Private Sub InsertDistribution(ByVal entry As Variant, ByVal isCopula As Boolean
            " as VarID " & vid & "." & vbCrLf & vbCrLf & formulaText & vbCrLf & vbCrLf & _
            InstallNote(added, fromVer) & _
            "Trial count comes from " & modMonteCarlo.MC_TRIALS_NAME & _
-           ", which you can change in Name Manager." & CopulaHint(isCopula, target), _
+           ", which you can change in Name Manager." & CopulaHint(isCopula, target) & _
+           TimeSeriesHint(isTimeSeries, target), _
            vbInformation, DIALOG_TITLE
     Exit Sub
 
@@ -804,6 +1159,81 @@ Private Function RowsText(ByVal nRows As Long) As String
         RowsText = "one row per trial"
     End If
 End Function
+
+' After a time series is written: how to read one period, with the real address.
+Private Function TimeSeriesHint(ByVal isTimeSeries As Boolean, ByVal target As Range) As String
+    If Not isTimeSeries Then Exit Function
+    TimeSeriesHint = vbCrLf & vbCrLf & "Each row is one path, each column one period. " & _
+                     "To summarize the last period:" & vbCrLf & _
+                     "   =" & modMonteCarlo.McFunctionName("fx.RiskStats") & "(TAKE(" & _
+                     target.Cells(1, 1).Address(False, False) & "#, , -1))"
+End Function
+
+' A Fit function: ask for the history and options, size the estimates block,
+' then write it. No trial count or VarID - the result is a handful of numbers.
+Private Sub InsertTSFit(ByVal entry As Variant)
+    Dim wb As Workbook
+    Dim i As Long, nRows As Long, added As Long
+    Dim params() As String
+    Dim args() As String
+    Dim one As String, formulaText As String
+    Dim target As Range
+
+    Dim fromVer As String, why As String
+    On Error GoTo Oops
+    If Not HaveWorkbook(wb) Then Exit Sub
+
+    params = Split(CStr(entry(2)), "|")
+    ReDim args(LBound(params) To UBound(params))
+    For i = LBound(params) To UBound(params)
+        one = AskArgument(CStr(entry(0)), params(i), i + 1, UBound(params) + 1)
+        If Len(one) = 0 Then Exit Sub
+        If modMonteCarlo.McParamIsOptional(params(i)) And modMonteCarlo.McIsNone(one) Then one = ""
+        args(i) = one
+    Next i
+
+    nRows = modMonteCarlo.McTSFitRows(entry, args)
+    If nRows > 0 Then
+        Set target = AskTarget("Where should the estimates go?" & vbCrLf & vbCrLf & _
+                               "A Parameter / Estimate block. " & BlockSize(nRows, 2))
+    Else
+        Set target = AskTarget("Where should the estimates go?" & vbCrLf & vbCrLf & _
+                               "A two-column Parameter / Estimate block.")
+    End If
+    If target Is Nothing Then Exit Sub
+    If Not TargetIsClear(target, nRows, 2) Then Exit Sub
+
+    AppStateManager.FastModeOn
+    If Not modMonteCarlo.McEnsureFunctions(wb, Array(CStr(entry(1))), added, fromVer, why) Then
+        AppStateManager.FastModeOff
+        Warn "The Monte Carlo functions could not be added to this workbook, so " & _
+             "the formula was not written." & vbCrLf & vbCrLf & why
+        Exit Sub
+    End If
+    formulaText = modMonteCarlo.McBuildFitCall(CStr(entry(1)), args)
+    modMonteCarlo.McWriteFormula target, formulaText
+    target.Worksheet.Calculate
+    AppStateManager.FastModeOff
+
+    If IsError(target.Value2) Then
+        Warn "The estimates came back as " & target.text & "." & vbCrLf & vbCrLf & _
+             "Usual causes: too short a history, values of 0 or less where prices are " & _
+             "needed, or a series that does not behave like the model (a trending series " & _
+             "has no mean reversion to estimate). The formula has been left in " & _
+             target.Address(False, False) & " so you can inspect it."
+        Exit Sub
+    End If
+    MsgBox CStr(entry(0)) & " written to " & target.Address(False, False) & "." & vbCrLf & vbCrLf & _
+           formulaText & vbCrLf & vbCrLf & _
+           "Point the matching simulator's arguments at these cells to simulate " & _
+           "from the fitted model." & vbCrLf & vbCrLf & InstallNote(added, fromVer), _
+           vbInformation, DIALOG_TITLE
+    Exit Sub
+
+Oops:
+    AppStateManager.FastModeOff
+    ShowError
+End Sub
 
 ' After a copula is written: how to use it, with the real cell address.
 Private Function CopulaHint(ByVal isCopula As Boolean, ByVal target As Range) As String

@@ -21,7 +21,8 @@ Option Explicit
 '  EDIT THIS when you ship a new build.
 ' ----------------------------------------------------------------------------
 Public Const XLEDGE_NAME    As String = "XL Edge"
-Public Const XLEDGE_VERSION As String = "2.21"
+Public Const XLEDGE_VERSION As String = "2.31"
+Public Const XLEDGE_COPYRIGHT As String = "Copyright (c) 2026 W Phillips, edgewisedata.com"
 
 ' ============================================================================
 '  Ribbon entry point
@@ -35,7 +36,7 @@ End Sub
 
 ' Callable from the Immediate window or another macro:  modAbout.LaunchAbout
 Public Sub LaunchAbout()
-    On Error GoTo Failed
+    On Error GoTo failed
 
     ' No FastModeOn here. The dialog is pure UI -- it reads nothing from any
     ' worksheet, so there is nothing to speed up and nothing to protect.
@@ -46,7 +47,7 @@ Public Sub LaunchAbout()
     Set f = Nothing
     Exit Sub
 
-Failed:
+failed:
     ' The form is the nice presentation, not the only one. If it fails to build
     ' for any reason, the name and version still reach the user.
     MsgBox VersionLine() & vbCrLf & vbCrLf & _
@@ -82,6 +83,7 @@ Public Function LicenseText() As String
     Dim s As String
 
     s = "MIT License" & vbCrLf & vbCrLf
+    s = s & XLEDGE_COPYRIGHT & vbCrLf & vbCrLf
 
     s = s & "Permission is hereby granted, free of charge, to any person " & _
             "obtaining a copy of this software, to deal in the Software " & _
@@ -91,7 +93,7 @@ Public Function LicenseText() As String
             "whom the Software is furnished to do so, subject to the " & _
             "following conditions:" & vbCrLf & vbCrLf
 
-    s = s & "The above permission notice shall be included in all copies " & _
+    s = s & "The above copyright notice and this permission notice shall be included in all copies " & _
             "or substantial portions of the Software." & vbCrLf & vbCrLf
 
     s = s & "THE SOFTWARE IS PROVIDED ""AS IS"", WITHOUT WARRANTY OF ANY " & _

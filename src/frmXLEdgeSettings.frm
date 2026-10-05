@@ -89,7 +89,7 @@ Private Sub BuildLayout()
 
     Set mpgSettings = Me.Controls.Add("Forms.MultiPage.1", "mpgSettings", True)
     With mpgSettings
-        .Left = 6: .Top = 6: .width = 468: .Height = 336
+        .Left = 6: .top = 6: .width = 468: .Height = 336
         .Pages(0).caption = "Constants"
         .Pages(1).caption = "Companies"
     End With
@@ -99,7 +99,7 @@ Private Sub BuildLayout()
 
     Set cmdSave = Me.Controls.Add("Forms.CommandButton.1", "cmdSave", True)
     With cmdSave
-        .caption = "Save": .Left = 296: .Top = 350: .width = 84: .Height = 24
+        .caption = "Save": .Left = 296: .top = 350: .width = 84: .Height = 24
         ' Deliberately NOT .Default. With a default button, pressing Enter after
         ' typing a value would save and close the form -- when what the user
         ' almost certainly meant was "apply this one edit". Save stays a
@@ -108,7 +108,7 @@ Private Sub BuildLayout()
 
     Set cmdCancel = Me.Controls.Add("Forms.CommandButton.1", "cmdCancel", True)
     With cmdCancel
-        .caption = "Cancel": .Left = 386: .Top = 350: .width = 84: .Height = 24
+        .caption = "Cancel": .Left = 386: .top = 350: .width = 84: .Height = 24
         .Cancel = True                     ' Esc closes the form
     End With
 End Sub
@@ -119,12 +119,12 @@ Private Sub BuildConstantsPage(ByVal pg As Object)
     Set c = pg.Controls.Add("Forms.Label.1", "lblListHdr", True)
     With c
         .caption = "Click a setting to edit its value:"
-        .Left = 8: .Top = 6: .width = 400: .Height = 12
+        .Left = 8: .top = 6: .width = 400: .Height = 12
     End With
 
     Set lstConstants = pg.Controls.Add("Forms.ListBox.1", "lstConstants", True)
     With lstConstants
-        .Left = 8: .Top = 20: .width = 440: .Height = 168
+        .Left = 8: .top = 20: .width = 440: .Height = 168
         .ColumnCount = 2
         .ColumnWidths = "190 pt;244 pt"
         .ColumnHeads = False
@@ -133,13 +133,13 @@ Private Sub BuildConstantsPage(ByVal pg As Object)
     Set lblConstName = pg.Controls.Add("Forms.Label.1", "lblConstName", True)
     With lblConstName
         .caption = ""
-        .Left = 8: .Top = 194: .width = 440: .Height = 12
+        .Left = 8: .top = 194: .width = 440: .Height = 12
         .Font.bold = True
     End With
 
     Set txtValue = pg.Controls.Add("Forms.TextBox.1", "txtValue", True)
     With txtValue
-        .Left = 8: .Top = 210: .width = 346: .Height = 34
+        .Left = 8: .top = 210: .width = 346: .Height = 34
         .Multiline = True                  ' the footer text is long
         .WordWrap = True
         .EnterKeyBehavior = False
@@ -147,13 +147,13 @@ Private Sub BuildConstantsPage(ByVal pg As Object)
 
     Set cmdUpdate = pg.Controls.Add("Forms.CommandButton.1", "cmdUpdate", True)
     With cmdUpdate
-        .caption = "Update": .Left = 360: .Top = 210: .width = 88: .Height = 24
+        .caption = "Update": .Left = 360: .top = 210: .width = 88: .Height = 24
     End With
 
     Set lblHint = pg.Controls.Add("Forms.Label.1", "lblHint", True)
     With lblHint
         .caption = ""
-        .Left = 8: .Top = 250: .width = 440: .Height = 52
+        .Left = 8: .top = 250: .width = 440: .Height = 52
         .WordWrap = True
     End With
 End Sub
@@ -164,50 +164,50 @@ Private Sub BuildCompaniesPage(ByVal pg As Object)
     Set c = pg.Controls.Add("Forms.Label.1", "lblCoHdr", True)
     With c
         .caption = "Names cycled by the Insert Company Name button:"
-        .Left = 8: .Top = 6: .width = 400: .Height = 12
+        .Left = 8: .top = 6: .width = 400: .Height = 12
     End With
 
     Set lstCompanies = pg.Controls.Add("Forms.ListBox.1", "lstCompanies", True)
     With lstCompanies
-        .Left = 8: .Top = 20: .width = 306: .Height = 216
+        .Left = 8: .top = 20: .width = 306: .Height = 216
     End With
 
     Set txtCompany = pg.Controls.Add("Forms.TextBox.1", "txtCompany", True)
     With txtCompany
-        .Left = 8: .Top = 244: .width = 306: .Height = 18
+        .Left = 8: .top = 244: .width = 306: .Height = 18
     End With
 
     Set c = pg.Controls.Add("Forms.Label.1", "lblCoTip", True)
     With c
         .caption = "Type a name above, then Add. Select a row and use Rename or Remove. " & _
                    "Order here is the order the button cycles through."
-        .Left = 8: .Top = 266: .width = 440: .Height = 30
+        .Left = 8: .top = 266: .width = 440: .Height = 30
         .WordWrap = True
     End With
 
     Set cmdAdd = pg.Controls.Add("Forms.CommandButton.1", "cmdAdd", True)
     With cmdAdd
-        .caption = "Add": .Left = 324: .Top = 20: .width = 124: .Height = 24
+        .caption = "Add": .Left = 324: .top = 20: .width = 124: .Height = 24
     End With
 
     Set cmdEdit = pg.Controls.Add("Forms.CommandButton.1", "cmdEdit", True)
     With cmdEdit
-        .caption = "Rename": .Left = 324: .Top = 48: .width = 124: .Height = 24
+        .caption = "Rename": .Left = 324: .top = 48: .width = 124: .Height = 24
     End With
 
     Set cmdRemove = pg.Controls.Add("Forms.CommandButton.1", "cmdRemove", True)
     With cmdRemove
-        .caption = "Remove": .Left = 324: .Top = 76: .width = 124: .Height = 24
+        .caption = "Remove": .Left = 324: .top = 76: .width = 124: .Height = 24
     End With
 
     Set cmdUp = pg.Controls.Add("Forms.CommandButton.1", "cmdUp", True)
     With cmdUp
-        .caption = "Move Up": .Left = 324: .Top = 112: .width = 124: .Height = 24
+        .caption = "Move Up": .Left = 324: .top = 112: .width = 124: .Height = 24
     End With
 
     Set cmdDown = pg.Controls.Add("Forms.CommandButton.1", "cmdDown", True)
     With cmdDown
-        .caption = "Move Down": .Left = 324: .Top = 140: .width = 124: .Height = 24
+        .caption = "Move Down": .Left = 324: .top = 140: .width = 124: .Height = 24
     End With
 End Sub
 
@@ -561,7 +561,7 @@ End Function
 ' ============================================================================
 
 Private Sub cmdSave_Click()
-    On Error GoTo Failed
+    On Error GoTo failed
 
     If Not AddInStorage.StorageReady() Then
         MsgBox "The add-in's reference sheet could not be found, so settings " & _
@@ -611,7 +611,7 @@ Private Sub cmdSave_Click()
     Me.Hide                     ' Hide, not Unload -- see the Saved property below
     Exit Sub
 
-Failed:
+failed:
     MsgBox "Could not save settings." & vbCrLf & vbCrLf & _
            "Error " & Err.Number & ": " & Err.description, vbExclamation, "XL Edge Settings"
 End Sub

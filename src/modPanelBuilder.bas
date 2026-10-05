@@ -130,7 +130,7 @@ Private Sub WriteIntro(ByVal ws As Worksheet, ByRef sp As TPanelSpec, _
     With ws.Cells(1 + ly.originShift, 1)
         .value = t
         .Font.bold = True
-        .Font.Size = 14
+        .Font.size = 14
     End With
     ws.Cells(2 + ly.originShift, 1).value = _
         "Paste your own numbers over the block below. Everything else is " & _
@@ -430,7 +430,7 @@ Private Sub WriteHeader(ByVal ws As Worksheet, ByRef ly As TPanelLayout, _
     With ws.Cells(ly.ptR0 - 1, col)
         .value = text
         .Font.bold = True
-        .Font.Size = 8
+        .Font.size = 8
     End With
 End Sub
 
@@ -687,7 +687,7 @@ Private Sub AnnEmit(ByVal ws As Worksheet, ByRef ly As TPanelLayout, _
     With ws.Cells(ly.ptR0 - 1, col)
         .value = name
         .Font.bold = True
-        .Font.Size = 8
+        .Font.size = 8
     End With
 
     ReDim a(1 To n, 1 To 1)

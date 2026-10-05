@@ -3,6 +3,57 @@
 Every XL Edge release, newest first. Each version is a tagged release with the
 `.xlam` attached: see [Releases](https://github.com/wfphillips128/xl-edge-excel-addin/releases).
 
+## 2.31 — 2026-10-04 · Time series, seasonal forecasting and diagnostics
+
+**Two new fly-outs on the Tools menu**, after Insert Monte Carlo Chart:
+
+- **Insert Time Series ▸**, in three groups:
+  - *Simulate paths* (one row per trial, one column per period): geometric
+    Brownian motion, jump-diffusion (Merton), mean reversion
+    (Ornstein-Uhlenbeck), square-root mean reversion (CIR), ARMA,
+    ARIMA (p, 1, q) and GARCH / GJR returns.
+  - *Fit to a history*: a Parameter / Estimate block for each model.
+  - *Seasonal ARIMA*: fit, forecast table with a P10–P90 band, simulated
+    paths, backtest, and rank orders by AIC.
+- **Insert Statistical Diagnostics ▸**: Correlation Matrix, Covariance Matrix,
+  Normality Tests (Shapiro-Wilk, Anderson-Darling, Jarque-Bera),
+  Multicollinearity (VIF), Eigenvalues and Condition Number, Outliers and
+  Leverage. Each block's size is known in advance, so the target area is checked
+  before writing.
+
+**Also new**
+
+- **Fan Chart (Time Series)** on Insert Monte Carlo Chart: the P10–P90 band,
+  the median and an optional plan line, from any block of paths.
+- **Metalog** and **SPT metalog** in the distribution selector (41 in all):
+  fitted to data or quantiles, or to a P10 / P50 / P90 estimate.
+- **Utility and certainty equivalent** in the library: `fx.RiskUtilλ`,
+  `fx.RiskUtilInvλ`, `fx.RiskCertEquivλ` (no ribbon item).
+- The install item is renamed **Install or Update Monte Carlo and Statistical
+  Tools Library**.
+
+**Library v0.7.0, 136 functions**, bundled in the add-in and installed on
+demand, offline. It is published as two gists: the
+[Monte Carlo gist](https://gist.github.com/wfphillips128/f91bff77212ab2c3d8f55a4f0a51b8b6)
+(90 functions) and the new
+[Time Series & Statistics gist](https://gist.github.com/wfphillips128/96171c91caba82aa708b12b9f8f575ce)
+(54). Validation: 557 checks pass, and both live gists pass a 32-check install,
+save and reopen round trip.
+
+**Breaking changes (library v0.7)**
+
+- Models **recalculate only when their inputs change**: no distribution,
+  statistics block or chart block is volatile any more.
+- `fx.RiskUλ`'s `"RAND"` method is retired and returns `#VALUE!`. Pass
+  `fx.RiskRandλ(Trials)` as `Trials` for live resampling.
+- Statistics and chart blocks no longer read their name from the cell above the
+  trials (that needed `OFFSET`, which is volatile). Without `Name` the header
+  shows "Value" / "Variable 1". The ribbon already passes `Name`.
+
+Ribbon: 152 buttons (was 127), 77 images (was 57). VBA: 23 components; the
+real changes are in `modMonteCarlo`, `modMonteCarloRibbon`,
+`modMonteCarloCharts` and `modAbout`.
+
 ## 2.21 — 2026-10-01 · Copulas, charts, and a bundled library
 
 **New on the Tools menu.** The Monte Carlo items are now five, three of them

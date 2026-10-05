@@ -424,7 +424,7 @@ End Property
 ' the key isn't in the table -- the caller decides whether that's an error.
 ' Does NOT save; batch your writes then call SaveStorage once.
 Public Function SetConstant(ByVal key As String, ByVal newValue As Variant) As Boolean
-    On Error GoTo Failed
+    On Error GoTo failed
     mLastError = ""
 
     Dim lo As ListObject
@@ -451,7 +451,7 @@ Public Function SetConstant(ByVal key As String, ByVal newValue As Variant) As B
     mLastError = "Key '" & key & "' was not found in tblConstants."
     Exit Function
 
-Failed:
+failed:
     mLastError = "Error " & Err.Number & " writing '" & key & "': " & Err.description
 End Function
 
@@ -468,7 +468,7 @@ End Function
 ' Resize simply redeclares where the table starts and ends. No cell ever moves,
 ' so neighbouring tables -- beside it or below it -- are untouched.
 Public Function SetCompanyList(ByVal names As Variant) As Boolean
-    On Error GoTo Failed
+    On Error GoTo failed
     mLastError = ""
 
     Dim lo As ListObject
@@ -524,7 +524,7 @@ Public Function SetCompanyList(ByVal names As Variant) As Boolean
     SetCompanyList = True
     Exit Function
 
-Failed:
+failed:
     mLastError = "Error " & Err.Number & " writing the company list: " & Err.description
 End Function
 
@@ -674,7 +674,7 @@ End Function
 ' Replace the entire table with the supplied entries. The single choke point
 ' every other writer goes through.
 Public Function WriteLambdaBlock(ByVal entries As Collection) As Boolean
-    On Error GoTo Failed
+    On Error GoTo failed
     mLastError = ""
 
     Dim lo As ListObject
@@ -776,14 +776,14 @@ Public Function WriteLambdaBlock(ByVal entries As Collection) As Boolean
     ' Pin the row height, so a long description cannot stretch a row either.
     On Error Resume Next
     lo.DataBodyRange.rows.rowHeight = 15
-    On Error GoTo Failed
+    On Error GoTo failed
 
     If hadTotals Then lo.ShowTotals = True
 
     WriteLambdaBlock = True
     Exit Function
 
-Failed:
+failed:
     mLastError = "Error " & Err.Number & " writing the LAMBDA library: " & Err.description
     ' The table was cleared before the failure. Put the previous library back
     ' rather than leave it empty for the next successful write to save.
@@ -819,7 +819,7 @@ End Function
 Public Function UpsertLambdas(ByVal entries As Collection, _
                               ByRef addedCount As Long, _
                               ByRef updatedCount As Long) As Boolean
-    On Error GoTo Failed
+    On Error GoTo failed
     mLastError = ""
     addedCount = 0
     updatedCount = 0
@@ -879,13 +879,13 @@ Public Function UpsertLambdas(ByVal entries As Collection, _
     UpsertLambdas = WriteLambdaBlock(out)
     Exit Function
 
-Failed:
+failed:
     mLastError = "Error " & Err.Number & " updating the LAMBDA library: " & Err.description
 End Function
 
 ' Remove one function. Returns False (with LastError set) if it isn't there.
 Public Function DeleteLambda(ByVal name As String) As Boolean
-    On Error GoTo Failed
+    On Error GoTo failed
     mLastError = ""
 
     Dim current As Collection, out As New Collection
@@ -908,14 +908,14 @@ Public Function DeleteLambda(ByVal name As String) As Boolean
     DeleteLambda = WriteLambdaBlock(out)
     Exit Function
 
-Failed:
+failed:
     mLastError = "Error " & Err.Number & " deleting '" & name & "': " & Err.description
 End Function
 
 ' Change a function's name, keeping its formula and description.
 ' Refuses if the new name is already taken by a DIFFERENT function.
 Public Function RenameLambda(ByVal oldName As String, ByVal newName As String) As Boolean
-    On Error GoTo Failed
+    On Error GoTo failed
     mLastError = ""
 
     Dim current As Collection, out As New Collection
@@ -947,13 +947,13 @@ Public Function RenameLambda(ByVal oldName As String, ByVal newName As String) A
     RenameLambda = WriteLambdaBlock(out)
     Exit Function
 
-Failed:
+failed:
     mLastError = "Error " & Err.Number & " renaming '" & oldName & "': " & Err.description
 End Function
 
 ' Change a function's description, leaving name and formula alone.
 Public Function SetLambdaDescription(ByVal name As String, ByVal description As String) As Boolean
-    On Error GoTo Failed
+    On Error GoTo failed
     mLastError = ""
 
     Dim current As Collection, out As New Collection
@@ -977,7 +977,7 @@ Public Function SetLambdaDescription(ByVal name As String, ByVal description As 
     SetLambdaDescription = WriteLambdaBlock(out)
     Exit Function
 
-Failed:
+failed:
     mLastError = "Error " & Err.Number & " describing '" & name & "': " & Err.description
 End Function
 

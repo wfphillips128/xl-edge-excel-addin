@@ -603,19 +603,19 @@ End Sub
 Sub ToggleFontSize2()
 
     With Selection
-    Select Case Selection.Font.Size
+    Select Case Selection.Font.size
         Case 14
-            Selection.Font.Size = 8
+            Selection.Font.size = 8
         Case 8
-            Selection.Font.Size = 9
+            Selection.Font.size = 9
         Case 9
-            Selection.Font.Size = 10
+            Selection.Font.size = 10
         Case 10
-            Selection.Font.Size = 11
+            Selection.Font.size = 11
         Case 11
-            Selection.Font.Size = 14
+            Selection.Font.size = 14
         Case Else
-            Selection.Font.Size = 8
+            Selection.Font.size = 8
     End Select
     End With
     

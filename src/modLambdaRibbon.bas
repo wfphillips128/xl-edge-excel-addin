@@ -494,13 +494,13 @@ End Sub
 ' state, so bailing out with EnableEvents still False would leave events dead
 ' for every open workbook until Excel restarts.
 Private Sub InjectAndReport(ByVal entries As Collection, ByVal wb As Workbook)
-    Dim Failed As New Collection
+    Dim failed As New Collection
     Dim wrapped As New Collection
     Dim added As Long
 
     On Error GoTo CleanExit
     AppStateManager.FastModeOn
-    added = modLambdaLib.AddEntriesToWorkbook(entries, wb, Failed, wrapped)
+    added = modLambdaLib.AddEntriesToWorkbook(entries, wb, failed, wrapped)
 
 CleanExit:
     AppStateManager.FastModeOff
@@ -520,8 +520,8 @@ CleanExit:
               "Call them with brackets - NAME() rather than NAME:" & NameList(wrapped)
     End If
 
-    If Failed.count > 0 Then msg = msg & vbCrLf & vbCrLf & _
-                                   "Skipped (invalid name or conflict):" & NameList(Failed)
+    If failed.count > 0 Then msg = msg & vbCrLf & vbCrLf & _
+                                   "Skipped (invalid name or conflict):" & NameList(failed)
 
     MsgBox msg, vbInformation, DIALOG_TITLE
 End Sub
