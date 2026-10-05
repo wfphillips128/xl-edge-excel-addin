@@ -220,12 +220,13 @@ a single cell.
   **rank** twelve candidate orders by AIC.
 
 Any block of paths feeds **Insert Monte Carlo Chart → Fan Chart**: the P10–P90
-band over time, the median, and an optional plan line.
+band over time, the median, and an optional plan line. Below, the fan chart is
+drawn from the SARIMA forecast's own simulated paths, with a stretch plan.
 
 <table>
 <tr>
 <td width="50%" valign="top"><img src="ts-sarima-forecast.png" alt="Three years of monthly sales and a 24-month SARIMA forecast continuing the seasonal pattern between dashed P10 and P90 lines"></td>
-<td width="50%" valign="top"><img src="ts-chart-fan.png" alt="A fan chart of monthly revenue: a shaded P10 to P90 band, a median line and a dashed plan line above it"></td>
+<td width="50%" valign="top"><img src="ts-chart-fan.png" alt="A fan chart of the same monthly sales from the SARIMA's simulated paths: a shaded P10 to P90 band following the seasonal pattern, a median line and a dashed stretch plan above it"></td>
 </tr>
 <tr>
 <td align="center"><em>SARIMA forecast</em></td>
